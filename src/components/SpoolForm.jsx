@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, X } from "lucide-react";
+import { swatchStyle } from "@/components/SpoolSwatch";
 
 const MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU"];
 const PRESET_COLORS = [
@@ -25,7 +27,9 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
     brand: "",
     material: "PLA",
     color_name: "",
+    color_type: "single",
     color_hex: "#3182ce",
+    color_hex_list: ["#e53e3e", "#3182ce"],
     starting_weight_grams: 1000,
     current_weight_grams: 1000,
     purchase_price_per_kg: "",
@@ -45,6 +49,9 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
     data.starting_weight_grams = parseFloat(data.starting_weight_grams) || 0;
     data.current_weight_grams = parseFloat(data.current_weight_grams) || 0;
     if (data.purchase_price_per_kg) data.purchase_price_per_kg = parseFloat(data.purchase_price_per_kg);
+    // keep color_hex in sync for backwards compat
+    if (data.color_type === "multi" && data.color_hex_list?.length > 0) data.color_hex = data.color_hex_list[0];
+    if (data.color_type === "rainbow") data.color_hex = "#ff7700";
     onSubmit(data);
   };
 
@@ -89,39 +96,85 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
         />
       </div>
 
-      {/* Color Hex Picker */}
+      {/* Color Type */}
       <div>
-        <Label className="text-sm text-muted-foreground mb-1 block">Color</Label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {PRESET_COLORS.map(c => (
+        <Label className="text-sm text-muted-foreground mb-1 block">Color Type</Label>
+        <div className="flex gap-2">
+          {[
+            { value: "single", label: "Single" },
+            { value: "multi", label: "Multi" },
+            { value: "rainbow", label: "🌈 Rainbow" },
+          ].map(opt => (
             <button
-              key={c.hex}
+              key={opt.value}
               type="button"
-              onClick={() => { set("color_hex", c.hex); set("color_name", form.color_name || c.name); }}
-              className="w-8 h-8 rounded-full border-2 transition-all"
-              style={{
-                backgroundColor: c.hex,
-                borderColor: form.color_hex === c.hex ? "white" : "transparent",
-              }}
-              title={c.name}
-            />
+              onClick={() => set("color_type", opt.value)}
+              className={`flex-1 h-10 rounded-lg text-sm font-medium border transition-colors ${form.color_type === opt.value ? "bg-primary text-primary-foreground border-primary" : "bg-muted border-border text-muted-foreground"}`}
+            >
+              {opt.label}
+            </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={form.color_hex}
-            onChange={e => set("color_hex", e.target.value)}
-            className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border-0"
-          />
-          <Input
-            value={form.color_hex}
-            onChange={e => set("color_hex", e.target.value)}
-            className="h-10 bg-muted border-border text-foreground font-mono text-sm"
-          />
-          <div className="w-10 h-10 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: form.color_hex }} />
-        </div>
       </div>
+
+      {/* Preview */}
+      <div className="w-full h-8 rounded-lg border border-border" style={swatchStyle(form)} />
+
+      {/* Single color picker */}
+      {form.color_type === "single" && (
+        <div>
+          <Label className="text-sm text-muted-foreground mb-1 block">Color</Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {PRESET_COLORS.map(c => (
+              <button
+                key={c.hex}
+                type="button"
+                onClick={() => { set("color_hex", c.hex); set("color_name", form.color_name || c.name); }}
+                className="w-8 h-8 rounded-full border-2 transition-all"
+                style={{ backgroundColor: c.hex, borderColor: form.color_hex === c.hex ? "white" : "transparent" }}
+                title={c.name}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="color" value={form.color_hex} onChange={e => set("color_hex", e.target.value)} className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border-0" />
+            <Input value={form.color_hex} onChange={e => set("color_hex", e.target.value)} className="h-10 bg-muted border-border text-foreground font-mono text-sm" />
+          </div>
+        </div>
+      )}
+
+      {/* Multi color picker */}
+      {form.color_type === "multi" && (
+        <div>
+          <Label className="text-sm text-muted-foreground mb-1 block">Colors (2–6)</Label>
+          <div className="space-y-2">
+            {(form.color_hex_list || []).map((hex, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input type="color" value={hex} onChange={e => {
+                  const list = [...(form.color_hex_list || [])];
+                  list[i] = e.target.value;
+                  set("color_hex_list", list);
+                }} className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0 flex-shrink-0" />
+                <Input value={hex} onChange={e => {
+                  const list = [...(form.color_hex_list || [])];
+                  list[i] = e.target.value;
+                  set("color_hex_list", list);
+                }} className="h-10 bg-muted border-border text-foreground font-mono text-sm" />
+                {(form.color_hex_list || []).length > 2 && (
+                  <button type="button" onClick={() => set("color_hex_list", (form.color_hex_list || []).filter((_, idx) => idx !== i))} className="p-1.5 rounded active:bg-muted">
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            ))}
+            {(form.color_hex_list || []).length < 6 && (
+              <button type="button" onClick={() => set("color_hex_list", [...(form.color_hex_list || []), "#888888"])} className="flex items-center gap-1.5 text-sm text-muted-foreground px-2 py-1.5 rounded active:bg-muted">
+                <Plus className="w-4 h-4" /> Add color
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Weights */}
       <div className="grid grid-cols-2 gap-3">

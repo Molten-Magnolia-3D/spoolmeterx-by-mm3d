@@ -1,5 +1,5 @@
-import { AlertTriangle, Package } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SpoolSwatch, swatchStyle } from "@/components/SpoolSwatch";
 
 const MATERIAL_COLORS = {
   PLA: "bg-blue-500/20 text-blue-300",
@@ -26,10 +26,7 @@ export default function SpoolCard({ spool }) {
       <div className="bg-card border border-border rounded-xl p-4 active:scale-[0.98] transition-transform">
         <div className="flex items-start gap-3">
           {/* Color Swatch */}
-          <div
-            className="w-12 h-12 rounded-lg flex-shrink-0 border border-white/10 shadow-inner"
-            style={{ backgroundColor: spool.color_hex || "#888" }}
-          />
+          <SpoolSwatch spool={spool} className="w-12 h-12 rounded-lg flex-shrink-0 border border-white/10 shadow-inner" />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
@@ -56,7 +53,7 @@ export default function SpoolCard({ spool }) {
           <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${pct}%`, backgroundColor: spool.color_hex || "#888" }}
+              style={{ width: `${pct}%`, ...swatchStyle(spool) }}
             />
           </div>
         </div>

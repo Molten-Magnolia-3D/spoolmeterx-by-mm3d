@@ -18,8 +18,23 @@
     "color_name": {
       "type": "string"
     },
+    "color_type": {
+      "type": "string",
+      "enum": [
+        "single",
+        "multi",
+        "rainbow"
+      ],
+      "default": "single"
+    },
     "color_hex": {
       "type": "string"
+    },
+    "color_hex_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "starting_weight_grams": {
       "type": "number"
