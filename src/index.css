@@ -123,3 +123,16 @@ body {
 #html5-qr-code-scanner-container > div {
   border: none !important;
 }
+
+/* Accessibility: High Contrast */
+.high-contrast {
+  --border: 215 30% 40%;
+  --muted-foreground: 215 20% 75%;
+  --card: 222 40% 13%;
+}
+
+/* Accessibility: Reduce Motion */
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}

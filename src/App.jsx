@@ -20,11 +20,12 @@ import MyBarcodesPage from '@/pages/MyBarcodesPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import LandingPage from '@/pages/LandingPage';
+import SettingsPage from '@/pages/SettingsPage';
 import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
 
-const TAB_ROUTES = ["/", "/scan", "/quick-jobs"];
+const TAB_ROUTES = ["/", "/scan", "/quick-jobs", "/settings"];
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated } = useAuth();
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={null} />
           <Route path="/scan" element={null} />
           <Route path="/quick-jobs" element={null} />
+          <Route path="/settings" element={null} />
           <Route path="/add" element={
             <PageTransition><AddSpoolPage /></PageTransition>
           } />
@@ -100,6 +102,19 @@ const AuthenticatedApp = () => {
     </>
   );
 };
+
+// Apply saved accessibility settings before first render
+const savedFontSize = localStorage.getItem("a11y_font_size");
+if (savedFontSize) {
+  const sizes = { sm: "14px", md: "16px", lg: "18px", xl: "21px" };
+  document.documentElement.style.fontSize = sizes[savedFontSize] || "16px";
+}
+if (localStorage.getItem("a11y_high_contrast") === "true") {
+  document.documentElement.classList.add("high-contrast");
+}
+if (localStorage.getItem("a11y_reduce_motion") === "true") {
+  document.documentElement.classList.add("reduce-motion");
+}
 
 function App() {
   return (

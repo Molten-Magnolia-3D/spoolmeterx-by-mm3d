@@ -23,6 +23,15 @@ const PRESET_COLORS = [
   { name: "Transparent", hex: "#c5e0f5" },
 ];
 
+const CHAR_LIMITS = {
+  brand: 60,
+  color_name: 60,
+  printer_slot: 30,
+  barcode: 100,
+  notes: 200,
+  customMaterial: 20,
+};
+
 export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loading, showQuantity = false, maxQuantity = 50 }) {
   const [allMaterials, setAllMaterials] = useState(BASE_MATERIALS);
 
@@ -88,9 +97,10 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
         <Label className="text-sm text-muted-foreground mb-1 block">Brand *</Label>
         <Input
           value={form.brand}
-          onChange={e => set("brand", e.target.value)}
+          onChange={e => set("brand", e.target.value.slice(0, CHAR_LIMITS.brand))}
           placeholder="e.g. Bambu, Prusament, Hatchbox"
           required
+          maxLength={CHAR_LIMITS.brand}
           className="h-12 bg-muted border-border text-foreground"
         />
       </div>
@@ -120,9 +130,10 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
         {materialMode === "other" && (
           <Input
             value={customMaterial}
-            onChange={e => setCustomMaterial(e.target.value)}
+            onChange={e => setCustomMaterial(e.target.value.slice(0, CHAR_LIMITS.customMaterial))}
             placeholder="e.g. NYLON, PC, PA12-CF"
             required
+            maxLength={CHAR_LIMITS.customMaterial}
             className="h-12 bg-muted border-border text-foreground font-mono uppercase mt-2"
           />
         )}
@@ -133,9 +144,10 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
         <Label className="text-sm text-muted-foreground mb-1 block">Color Name *</Label>
         <Input
           value={form.color_name}
-          onChange={e => set("color_name", e.target.value)}
+          onChange={e => set("color_name", e.target.value.slice(0, CHAR_LIMITS.color_name))}
           placeholder="e.g. Galaxy Black, Cool Grey"
           required
+          maxLength={CHAR_LIMITS.color_name}
           className="h-12 bg-muted border-border text-foreground"
         />
       </div>
@@ -264,19 +276,21 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
           <Label className="text-sm text-muted-foreground mb-1 block">Printer Slot</Label>
           <Input
             value={form.printer_slot}
-            onChange={e => set("printer_slot", e.target.value)}
+            onChange={e => set("printer_slot", e.target.value.slice(0, CHAR_LIMITS.printer_slot))}
             placeholder="e.g. A1, Slot 2"
+            maxLength={CHAR_LIMITS.printer_slot}
             className="h-12 bg-muted border-border text-foreground"
           />
         </div>
       </div>
 
       <div>
-        <Label className="text-sm text-muted-foreground mb-1 block">Barcode</Label>
+        <Label className="text-sm text-muted-foreground mb-1 block">Barcode <span className="text-muted-foreground/50">(optional)</span></Label>
         <Input
           value={form.barcode}
-          onChange={e => set("barcode", e.target.value)}
+          onChange={e => set("barcode", e.target.value.slice(0, CHAR_LIMITS.barcode))}
           placeholder="Barcode value"
+          maxLength={CHAR_LIMITS.barcode}
           className="h-12 bg-muted border-border text-foreground font-mono"
         />
       </div>
@@ -292,11 +306,12 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
       </div>
 
       <div>
-        <Label className="text-sm text-muted-foreground mb-1 block">Notes</Label>
+        <Label className="text-sm text-muted-foreground mb-1 block">Notes <span className="text-muted-foreground/50">(optional)</span></Label>
         <Input
           value={form.notes}
-          onChange={e => set("notes", e.target.value)}
+          onChange={e => set("notes", e.target.value.slice(0, CHAR_LIMITS.notes))}
           placeholder="Optional notes"
+          maxLength={CHAR_LIMITS.notes}
           className="h-12 bg-muted border-border text-foreground"
         />
       </div>

@@ -27,6 +27,11 @@ export default function QuickJobsPage() {
 
   useEffect(() => {
     loadAll();
+    // Re-fetch spools when a new spool is added so it appears without refresh
+    const unsub = base44.entities.Spool.subscribe(() => {
+      base44.entities.Spool.list("-updated_date", 200).then(setSpools).catch(() => {});
+    });
+    return unsub;
   }, []);
 
   const loadAll = async () => {

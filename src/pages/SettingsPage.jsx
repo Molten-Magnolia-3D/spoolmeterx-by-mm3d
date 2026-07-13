@@ -1,0 +1,355 @@
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Link, useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubPageHeader from "@/components/SubPageHeader";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import FeedbackForm from "@/components/FeedbackForm";
+import DeleteAccountDialog from "@/components/DeleteAccountDialog";
+import { exportSpoolsCsv } from "@/lib/exportCsv";
+import { parseCsv } from "@/lib/importCsv";
+import {
+  Bell, LogOut, Trash2, Download, Shield, Type, Sun, Moon,
+  ChevronRight
+} from "lucide-react";
+
+const FONT_SIZES = [
+  { label: "Small", value: "sm", cls: "text-sm" },
+  { label: "Normal", value: "md", cls: "text-base" },
+  { label: "Large", value: "lg", cls: "text-lg" },
+  { label: "XL", value: "xl", cls: "text-xl" },
+];
+
+function Toggle({ enabled, onToggle }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`w-12 h-6 rounded-full transition-colors relative flex-shrink-0 ${enabled ? "bg-primary" : "bg-muted"}`}
+      role="switch"
+      aria-checked={enabled}
+    >
+      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow ${enabled ? "left-7" : "left-1"}`} />
+    </button>
+  );
+}
+
+function SectionHeader({ children }) {
+  return (
+    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-5 pb-1">
+      {children}
+    </p>
+  );
+}
+
+function SettingRow({ label, sublabel, right, onClick }) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 px-4 py-3.5 bg-card border-b border-border/50 ${onClick ? "active:bg-muted cursor-pointer" : ""}`}
+      onClick={onClick}
+    >
+      <div className="min-w-0">
+        <p className="text-sm text-foreground font-medium">{label}</p>
+        {sublabel && <p className="text-xs text-muted-foreground mt-0.5">{sublabel}</p>}
+      </div>
+      <div className="flex-shrink-0">{right}</div>
+    </div>
+  );
+}
+
+export default function SettingsPage() {
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [spools, setSpools] = useState([]);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [importStatus, setImportStatus] = useState(null);
+  const [importMessage, setImportMessage] = useState("");
+
+  // Threshold settings
+  const [criticalThreshold, setCriticalThreshold] = useState(() => parseInt(localStorage.getItem("ff_critical") || "100"));
+  const [lowThreshold, setLowThreshold] = useState(() => parseInt(localStorage.getItem("ff_low") || "300"));
+  const [groupedAlerts, setGroupedAlerts] = useState(() => localStorage.getItem("ff_grouped_alerts") === "true");
+
+  // Notifications
+  const [notifyEmail, setNotifyEmail] = useState(() => localStorage.getItem("ff_notify_email") || "");
+  const [notifyEnabled, setNotifyEnabled] = useState(() => localStorage.getItem("ff_notify_enabled") === "true");
+
+  // Accessibility
+  const [fontSize, setFontSize] = useState(() => localStorage.getItem("a11y_font_size") || "md");
+  const [highContrast, setHighContrast] = useState(() => localStorage.getItem("a11y_high_contrast") === "true");
+  const [reduceMotion, setReduceMotion] = useState(() => localStorage.getItem("a11y_reduce_motion") === "true");
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+    base44.entities.Spool.list("-updated_date", 200).then(setSpools).catch(() => {});
+  }, []);
+
+  // Apply accessibility settings globally
+  useEffect(() => {
+    const sizes = { sm: "14px", md: "16px", lg: "18px", xl: "21px" };
+    document.documentElement.style.fontSize = sizes[fontSize] || "16px";
+    localStorage.setItem("a11y_font_size", fontSize);
+  }, [fontSize]);
+
+  useEffect(() => {
+    if (highContrast) {
+      document.documentElement.classList.add("high-contrast");
+    } else {
+      document.documentElement.classList.remove("high-contrast");
+    }
+    localStorage.setItem("a11y_high_contrast", highContrast);
+  }, [highContrast]);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      document.documentElement.classList.add("reduce-motion");
+    } else {
+      document.documentElement.classList.remove("reduce-motion");
+    }
+    localStorage.setItem("a11y_reduce_motion", reduceMotion);
+  }, [reduceMotion]);
+
+  const { plan, spoolLimit, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
+
+  const handleImportCsv = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setImportStatus("importing");
+    setImportMessage("");
+    try {
+      const text = await file.text();
+      const rows = parseCsv(text);
+      await base44.entities.Spool.bulkCreate(rows);
+      setImportStatus("done");
+      setImportMessage(`Imported ${rows.length} spool${rows.length !== 1 ? "s" : ""} successfully.`);
+      base44.entities.Spool.list("-updated_date", 200).then(setSpools).catch(() => {});
+    } catch (err) {
+      setImportStatus("error");
+      setImportMessage(err.message || "Import failed.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background pb-24 max-w-2xl mx-auto">
+      <SubPageHeader title="Settings" fallback="/" />
+
+      {/* Plan info */}
+      <SectionHeader>Subscription</SectionHeader>
+      <div className="bg-card border-b border-border/50 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground capitalize">
+              {isTrialActive ? "Free Trial" : plan} Plan
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {plan === "free" && !isTrialActive
+                ? "Includes ads · Quick Jobs locked"
+                : isTrialActive
+                ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left · Full access`
+                : "No ads · Full Quick Jobs"}
+            </p>
+          </div>
+          {plan === "free" && !isTrialActive && (
+            <Link to="/pricing" className="text-sm text-primary font-semibold bg-primary/10 px-3 py-1.5 rounded-lg">
+              Upgrade →
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Quick links */}
+      <SectionHeader>Account</SectionHeader>
+      <div className="divide-y divide-border/50">
+        <Link to="/redeem" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
+          <p className="text-sm text-foreground font-medium">🎟️ Redeem Promo / Trial Code</p>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
+        <Link to="/my-barcodes" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
+          <p className="text-sm text-foreground font-medium">🏷️ My Barcode Library</p>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
+        {currentUser?.role === "admin" && (
+          <Link to="/admin" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
+            <p className="text-sm text-foreground font-medium">🛠️ Admin Panel</p>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+        )}
+      </div>
+
+      {/* Low stock thresholds */}
+      <SectionHeader>Low Stock Thresholds</SectionHeader>
+      <div className="bg-card px-4 py-4 space-y-3 border-b border-border/50">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs text-red-400 font-semibold mb-1.5">Critical below (g)</p>
+            <Input
+              type="number" min="0" value={criticalThreshold}
+              onChange={e => { const v = parseInt(e.target.value) || 0; setCriticalThreshold(v); localStorage.setItem("ff_critical", v); }}
+              className="h-11 bg-muted border-border text-foreground"
+            />
+          </div>
+          <div>
+            <p className="text-xs text-yellow-400 font-semibold mb-1.5">Low below (g)</p>
+            <Input
+              type="number" min="0" value={lowThreshold}
+              onChange={e => { const v = parseInt(e.target.value) || 0; setLowThreshold(v); localStorage.setItem("ff_low", v); }}
+              className="h-11 bg-muted border-border text-foreground"
+            />
+          </div>
+        </div>
+        <SettingRow
+          label="Alert by total filament"
+          sublabel="Alert when combined grams of a color is low"
+          right={<Toggle enabled={groupedAlerts} onToggle={() => setGroupedAlerts(v => { localStorage.setItem("ff_grouped_alerts", !v); return !v; })} />}
+        />
+      </div>
+
+      {/* Email notifications */}
+      <SectionHeader>Notifications</SectionHeader>
+      <div className="bg-card border-b border-border/50">
+        <div className="flex items-center justify-between px-4 py-3.5">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-foreground font-medium">Email low-stock alerts</p>
+              <p className="text-xs text-muted-foreground">Completely optional</p>
+            </div>
+          </div>
+          <Toggle enabled={notifyEnabled} onToggle={() => setNotifyEnabled(v => { localStorage.setItem("ff_notify_enabled", !v); return !v; })} />
+        </div>
+        {notifyEnabled && (
+          <div className="px-4 pb-4 space-y-2">
+            <Input
+              type="email"
+              placeholder="you@example.com (optional)"
+              value={notifyEmail}
+              onChange={e => { setNotifyEmail(e.target.value); localStorage.setItem("ff_notify_email", e.target.value); }}
+              className="h-11 bg-muted border-border text-foreground"
+            />
+            <p className="text-xs text-muted-foreground">Alerts fire when you open the app and critical spools are found.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Accessibility */}
+      <SectionHeader>Accessibility</SectionHeader>
+      <div className="bg-card border-b border-border/50 divide-y divide-border/50">
+        {/* Font size */}
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Type className="w-4 h-4 text-muted-foreground" />
+            <p className="text-sm text-foreground font-medium">Text Size</p>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {FONT_SIZES.map(f => (
+              <button
+                key={f.value}
+                type="button"
+                onClick={() => setFontSize(f.value)}
+                className={`py-2 rounded-lg text-center border transition-colors ${fontSize === f.value ? "bg-primary text-primary-foreground border-primary" : "bg-muted border-border text-muted-foreground"}`}
+              >
+                <span className={f.cls}>{f.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* High contrast */}
+        <div className="flex items-center justify-between px-4 py-3.5">
+          <div className="flex items-center gap-2">
+            <Sun className="w-4 h-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-foreground font-medium">High Contrast</p>
+              <p className="text-xs text-muted-foreground">Increases border and text contrast</p>
+            </div>
+          </div>
+          <Toggle enabled={highContrast} onToggle={() => setHighContrast(v => !v)} />
+        </div>
+        {/* Reduce motion */}
+        <div className="flex items-center justify-between px-4 py-3.5">
+          <div className="flex items-center gap-2">
+            <Moon className="w-4 h-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-foreground font-medium">Reduce Motion</p>
+              <p className="text-xs text-muted-foreground">Disables animations and transitions</p>
+            </div>
+          </div>
+          <Toggle enabled={reduceMotion} onToggle={() => setReduceMotion(v => !v)} />
+        </div>
+      </div>
+
+      {/* Data */}
+      <SectionHeader>Data</SectionHeader>
+      <div className="bg-card border-b border-border/50 px-4 py-4 space-y-3">
+        <Button variant="outline" size="sm" onClick={() => exportSpoolsCsv(spools)} className="w-full h-11 gap-2 border-border text-foreground">
+          <Download className="w-4 h-4" /> Export Inventory as CSV
+        </Button>
+        <label className="w-full block">
+          <div className={`flex items-center justify-center gap-2 h-11 px-3 rounded-md text-sm font-medium border border-border cursor-pointer transition-colors active:bg-muted ${importStatus === "importing" ? "opacity-50 pointer-events-none" : "text-foreground bg-transparent"}`}>
+            <Download className="w-4 h-4 rotate-180" />
+            {importStatus === "importing" ? "Importing…" : "Import from CSV"}
+          </div>
+          <input type="file" accept=".csv" className="hidden" onChange={handleImportCsv} />
+        </label>
+        {importStatus === "done" && <p className="text-xs text-green-400">{importMessage}</p>}
+        {importStatus === "error" && <p className="text-xs text-red-400">{importMessage}</p>}
+        <Button
+          variant="outline" size="sm"
+          onClick={() => {
+            const header = "brand,material,color_name,color_hex,starting_weight_grams,current_weight_grams,purchase_price_per_kg,printer_slot,notes,date_opened";
+            const example = "Bambu Lab,PLA,Matte Black,#222222,1000,950,19.99,Slot 1,Example spool,2026-01-01";
+            const blob = new Blob([header + "\n" + example], { type: "text/csv" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "filament_template.csv";
+            a.click();
+          }}
+          className="w-full h-11 gap-2 border-border text-foreground"
+        >
+          <Download className="w-4 h-4" /> Download CSV Template
+        </Button>
+        <p className="text-xs text-muted-foreground">Required fields: brand, material, color_name, starting_weight_grams, current_weight_grams.</p>
+      </div>
+
+      {/* Legal */}
+      <SectionHeader>Legal</SectionHeader>
+      <div className="bg-card border-b border-border/50 divide-y divide-border/50">
+        <Link to="/privacy" className="flex items-center justify-between px-4 py-3.5 active:bg-muted">
+          <p className="text-sm text-foreground font-medium">Privacy Policy</p>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
+        <Link to="/terms" className="flex items-center justify-between px-4 py-3.5 active:bg-muted">
+          <p className="text-sm text-foreground font-medium">Terms of Service</p>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
+      </div>
+
+      {/* Feedback */}
+      <SectionHeader>Feedback</SectionHeader>
+      <div className="bg-card border-b border-border/50 px-4 py-4">
+        {!showFeedback ? (
+          <Button variant="outline" className="w-full h-11 border-border text-foreground" onClick={() => setShowFeedback(true)}>
+            Send Feedback
+          </Button>
+        ) : (
+          <FeedbackForm user={currentUser} isBeta={isBeta} onDone={() => setShowFeedback(false)} />
+        )}
+      </div>
+
+      {/* Sign out / delete */}
+      <SectionHeader>Account Actions</SectionHeader>
+      <div className="bg-card border-b border-border/50 px-4 py-4 space-y-3">
+        <Button variant="outline" className="w-full h-11 gap-2 border-border text-foreground" onClick={() => base44.auth.logout("/login")}>
+          <LogOut className="w-4 h-4" /> Sign Out
+        </Button>
+        <Button variant="outline" className="w-full h-11 gap-2 border-destructive/50 text-destructive" onClick={() => setShowDeleteAccount(true)}>
+          <Trash2 className="w-4 h-4" /> Delete Account
+        </Button>
+      </div>
+
+      {showDeleteAccount && <DeleteAccountDialog onClose={() => setShowDeleteAccount(false)} />}
+    </div>
+  );
+}
