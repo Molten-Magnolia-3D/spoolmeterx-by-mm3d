@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -46,17 +46,24 @@ export default function Dashboard() {
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const { plan, spoolLimit } = useSubscription(currentUser);
 
-  useEffect(() => {
-    load();
-    const unsub = base44.entities.Spool.subscribe(() => load());
-    return unsub;
-  }, []);
+  const debounceRef = useRef(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const data = await base44.entities.Spool.list("-updated_date", 200);
     setSpools(data);
     setLoading(false);
-  };
+  }, []);
+
+  const debouncedLoad = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(load, 800);
+  }, [load]);
+
+  useEffect(() => {
+    load();
+    const unsub = base44.entities.Spool.subscribe(debouncedLoad);
+    return () => { unsub(); if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, []);
 
   const active = spools.filter(s => !s.is_empty);
 
