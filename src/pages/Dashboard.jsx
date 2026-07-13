@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { Plus, ScanBarcode, Package } from "lucide-react";
+import { Plus, ScanBarcode, Package, Zap } from "lucide-react";
 import SpoolCard from "@/components/SpoolCard";
 import LowStockWidget from "@/components/LowStockWidget";
 
@@ -43,6 +43,13 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">{active.length} active spools</p>
           </div>
           <div className="flex gap-2">
+            <Link
+              to="/quick-jobs"
+              className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
+            >
+              <Zap className="w-4 h-4" />
+              Jobs
+            </Link>
             <Link
               to="/scan"
               className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"

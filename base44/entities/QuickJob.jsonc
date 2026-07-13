@@ -1,0 +1,36 @@
+{
+  "name": "QuickJob",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "usages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "spool_id": {
+            "type": "string"
+          },
+          "spool_label": {
+            "type": "string"
+          },
+          "spool_color_hex": {
+            "type": "string"
+          },
+          "grams": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name",
+    "usages"
+  ]
+}

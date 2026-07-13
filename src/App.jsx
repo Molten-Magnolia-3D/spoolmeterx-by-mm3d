@@ -11,6 +11,7 @@ import Dashboard from '@/pages/Dashboard';
 import ScanPage from '@/pages/ScanPage';
 import AddSpoolPage from '@/pages/AddSpoolPage';
 import SpoolDetail from '@/pages/SpoolDetail';
+import QuickJobsPage from '@/pages/QuickJobsPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -38,6 +39,7 @@ const AuthenticatedApp = () => {
       <Route path="/scan" element={<ScanPage />} />
       <Route path="/add" element={<AddSpoolPage />} />
       <Route path="/spool/:id" element={<SpoolDetail />} />
+      <Route path="/quick-jobs" element={<QuickJobsPage />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
