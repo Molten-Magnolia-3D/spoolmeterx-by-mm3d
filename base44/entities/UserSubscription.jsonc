@@ -12,6 +12,7 @@
       "type": "string",
       "enum": [
         "free",
+        "trial",
         "hobby",
         "pro",
         "lifetime"
@@ -37,6 +38,14 @@
     "spool_limit": {
       "type": "number",
       "default": 20
+    },
+    "trial_ends_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_beta": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

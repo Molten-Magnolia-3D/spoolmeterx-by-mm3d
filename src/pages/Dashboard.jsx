@@ -44,7 +44,7 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
-  const { plan, spoolLimit } = useSubscription(currentUser);
+  const { plan, spoolLimit, isTrialActive, trialDaysLeft } = useSubscription(currentUser);
 
   const debounceRef = useRef(null);
 
@@ -212,6 +212,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Trial Banner */}
+      {isTrialActive && (
+        <div className="px-4 py-2 text-sm flex items-center justify-between gap-2 bg-blue-950/60 border-b border-blue-800/50 text-blue-300">
+          <span>🎉 Free trial — {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} remaining. Enjoy full access!</span>
+          <Link to="/pricing" className="font-semibold underline underline-offset-2 flex-shrink-0">Upgrade</Link>
+        </div>
+      )}
 
       {/* Upgrade Banner */}
       {plan === "free" && active.length >= spoolLimit * 0.8 && (
