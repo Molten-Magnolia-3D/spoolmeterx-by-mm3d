@@ -12,6 +12,9 @@ import ScanPage from '@/pages/ScanPage';
 import AddSpoolPage from '@/pages/AddSpoolPage';
 import SpoolDetail from '@/pages/SpoolDetail';
 import QuickJobsPage from '@/pages/QuickJobsPage';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from '@/pages/Login';
+import { Navigate } from 'react-router-dom';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -35,11 +38,14 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/scan" element={<ScanPage />} />
-      <Route path="/add" element={<AddSpoolPage />} />
-      <Route path="/spool/:id" element={<SpoolDetail />} />
-      <Route path="/quick-jobs" element={<QuickJobsPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/scan" element={<ScanPage />} />
+        <Route path="/add" element={<AddSpoolPage />} />
+        <Route path="/spool/:id" element={<SpoolDetail />} />
+        <Route path="/quick-jobs" element={<QuickJobsPage />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
