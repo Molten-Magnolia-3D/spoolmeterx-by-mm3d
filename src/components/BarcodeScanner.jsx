@@ -8,11 +8,9 @@ export default function BarcodeScanner({ onScan, onClose }) {
   const containerId = "barcode-scanner-container";
 
   useEffect(() => {
-    let scanner;
-
     const startScanner = async () => {
       try {
-        scanner = new Html5Qrcode(containerId);
+        const scanner = new Html5Qrcode(containerId);
         scannerRef.current = scanner;
 
         await scanner.start(
@@ -24,6 +22,7 @@ export default function BarcodeScanner({ onScan, onClose }) {
           () => {}
         );
       } catch (err) {
+        scannerRef.current = null;
         setError("Camera access denied or unavailable. Please allow camera access and try again.");
       }
     };
@@ -32,7 +31,10 @@ export default function BarcodeScanner({ onScan, onClose }) {
 
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
+        try {
+          scannerRef.current.stop().catch(() => {});
+        } catch {}
+        scannerRef.current = null;
       }
     };
   }, []);
@@ -47,8 +49,14 @@ export default function BarcodeScanner({ onScan, onClose }) {
       </div>
 
       {error ? (
-        <div className="flex-1 flex items-center justify-center p-6 text-center">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
           <p className="text-red-400 text-sm">{error}</p>
+          <button
+            onClick={onClose}
+            className="px-6 py-3 rounded-xl bg-muted text-foreground text-sm font-semibold active:opacity-80"
+          >
+            Go Back
+          </button>
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center">
