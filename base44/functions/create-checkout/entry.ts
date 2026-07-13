@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       "https://spoolmeterx.base44.app",
     ];
     const requestOrigin = req.headers.get("Origin") || "";
-    const origin = ALLOWED_ORIGINS.find(o => requestOrigin.startsWith(o)) || ALLOWED_ORIGINS[0];
+    const origin = ALLOWED_ORIGINS.find(o => requestOrigin === o) || ALLOWED_ORIGINS[0];
 
     const item = {
       name: planConfig.name,
