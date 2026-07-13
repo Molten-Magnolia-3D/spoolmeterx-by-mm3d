@@ -3,9 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, X } from "lucide-react";
 import { swatchStyle } from "@/components/SpoolSwatch";
+// Select removed — material uses pill buttons now
 
 const BASE_MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU"];
 const PRESET_COLORS = [
@@ -24,16 +24,23 @@ const PRESET_COLORS = [
 ];
 
 export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loading, showQuantity = false, maxQuantity = 50 }) {
-  const [materials, setMaterials] = useState(BASE_MATERIALS);
+  const [allMaterials, setAllMaterials] = useState(BASE_MATERIALS);
 
   useEffect(() => {
     base44.entities.FilamentType.filter({ is_active: true }).then(types => {
-      if (types.length > 0) {
-        const extras = types.map(t => t.name).filter(n => !BASE_MATERIALS.includes(n));
-        setMaterials([...BASE_MATERIALS, ...extras]);
-      }
+      const extras = types.map(t => t.name).filter(n => !BASE_MATERIALS.includes(n));
+      setAllMaterials([...BASE_MATERIALS, ...extras]);
     }).catch(() => {});
   }, []);
+
+  // Track whether the user picked "Other" and is typing a custom material
+  const isCustomMaterial = (mat, knownList) => mat && !knownList.includes(mat);
+  const [customMaterial, setCustomMaterial] = useState(
+    isCustomMaterial(initialData.material, BASE_MATERIALS) ? initialData.material : ""
+  );
+  const [materialMode, setMaterialMode] = useState(
+    isCustomMaterial(initialData.material, BASE_MATERIALS) ? "other" : (initialData.material || "PLA")
+  );
 
   const [form, setForm] = useState({
     brand: "",
@@ -59,6 +66,8 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = { ...form };
+    // Resolve material from pill selection or custom input
+    data.material = materialMode === "other" ? customMaterial.trim().toUpperCase() : materialMode;
     data.starting_weight_grams = parseFloat(data.starting_weight_grams) || 0;
     data.current_weight_grams = parseFloat(data.current_weight_grams) || 0;
     if (data.purchase_price_per_kg !== "" && data.purchase_price_per_kg != null) {
@@ -89,16 +98,34 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
       {/* Material */}
       <div>
         <Label className="text-sm text-muted-foreground mb-1 block">Material *</Label>
-        <Select value={form.material} onValueChange={v => set("material", v)}>
-          <SelectTrigger className="h-12 bg-muted border-border text-foreground">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-card border-border">
-            {materials.map(m => (
-              <SelectItem key={m} value={m} className="text-foreground">{m}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap gap-2">
+          {allMaterials.map(m => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMaterialMode(m)}
+              className={`px-3 py-1.5 rounded-full text-sm font-mono font-semibold border transition-colors ${materialMode === m ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border"}`}
+            >
+              {m}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setMaterialMode("other")}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${materialMode === "other" ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border"}`}
+          >
+            Other…
+          </button>
+        </div>
+        {materialMode === "other" && (
+          <Input
+            value={customMaterial}
+            onChange={e => setCustomMaterial(e.target.value)}
+            placeholder="e.g. NYLON, PC, PA12-CF"
+            required
+            className="h-12 bg-muted border-border text-foreground font-mono uppercase mt-2"
+          />
+        )}
       </div>
 
       {/* Color */}

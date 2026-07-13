@@ -6,14 +6,7 @@
       "type": "string"
     },
     "material": {
-      "type": "string",
-      "enum": [
-        "PLA",
-        "PETG",
-        "ABS",
-        "ASA",
-        "TPU"
-      ]
+      "type": "string"
     },
     "color_name": {
       "type": "string"
