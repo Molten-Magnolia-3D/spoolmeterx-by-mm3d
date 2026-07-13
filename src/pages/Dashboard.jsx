@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { Plus, ScanBarcode, Package, Zap } from "lucide-react";
-import SpoolCard from "@/components/SpoolCard";
+import SpoolGroupCard from "@/components/SpoolGroupCard";
 import LowStockWidget from "@/components/LowStockWidget";
 
 const MATERIALS = ["All", "PLA", "PETG", "ABS", "ASA", "TPU"];
@@ -25,11 +25,20 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  const visible = spools.filter(s => {
+  const filtered = spools.filter(s => {
     if (!showEmpty && s.is_empty) return false;
     if (filter !== "All" && s.material !== filter) return false;
     return true;
   });
+
+  // Group by brand + material + color_name + color_hex
+  const groupMap = {};
+  for (const s of filtered) {
+    const key = `${s.brand}||${s.material}||${s.color_name}||${s.color_hex || ""}`;
+    if (!groupMap[key]) groupMap[key] = [];
+    groupMap[key].push(s);
+  }
+  const groups = Object.values(groupMap);
 
   const active = spools.filter(s => !s.is_empty);
 
@@ -105,7 +114,7 @@ export default function Dashboard() {
           <div className="flex justify-center py-16">
             <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
           </div>
-        ) : visible.length === 0 ? (
+        ) : groups.length === 0 ? (
           <div className="text-center py-16">
             <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground font-medium">No spools found</p>
@@ -113,7 +122,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="space-y-3">
-            {visible.map(s => <SpoolCard key={s.id} spool={s} />)}
+            {groups.map((group, i) => <SpoolGroupCard key={i} spools={group} />)}
           </div>
         )}
       </div>
