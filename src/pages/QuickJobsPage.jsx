@@ -32,7 +32,7 @@ export default function QuickJobsPage() {
   const loadAll = async () => {
     const [j, s] = await Promise.all([
       base44.entities.QuickJob.list("-created_date", 100),
-      base44.entities.Spool.filter({ is_empty: false }, "-updated_date", 200),
+      base44.entities.Spool.list("-updated_date", 200),
     ]);
     setJobs(j);
     setSpools(s);

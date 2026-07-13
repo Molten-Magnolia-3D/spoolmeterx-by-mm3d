@@ -27,7 +27,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 const TAB_ROUTES = ["/", "/scan", "/quick-jobs"];
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated } = useAuth();
   const location = useLocation();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -93,8 +93,8 @@ const AuthenticatedApp = () => {
         <Route path="*" element={<PageNotFound />} />
       </Routes>
 
-      {/* Always-mounted tab shell — display:none hides it without unmounting */}
-      <div style={{ display: isTabRoute ? "block" : "none" }}>
+      {/* Always-mounted tab shell — display:none hides it without unmounting. Only show when authenticated. */}
+      <div style={{ display: isTabRoute && isAuthenticated ? "block" : "none" }}>
         <TabLayout />
       </div>
     </>

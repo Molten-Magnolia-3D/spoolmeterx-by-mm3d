@@ -3,8 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
-  Plus, ScanBarcode, Package, Zap, Settings, X,
-  CheckSquare, Square, Copy, Trash2, Search, ArrowUpDown, Download, Bell, LogOut
+  Plus, ScanBarcode, Package, Zap, X,
+  CheckSquare, Square, Copy, Trash2, Search, Download, Bell, LogOut, Settings
 } from "lucide-react";
 import SpoolGroupCard from "@/components/SpoolGroupCard";
 import LowStockWidget from "@/components/LowStockWidget";
@@ -215,7 +215,7 @@ export default function Dashboard({ openSettings }) {
 
   return (
     <div
-      className="min-h-screen bg-background"
+      className="min-h-screen bg-background max-w-2xl mx-auto"
       ref={contentRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -223,36 +223,29 @@ export default function Dashboard({ openSettings }) {
     >
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pt-3 pb-2">
-        {/* Title row */}
-        <div className="flex items-center justify-center mb-2">
-          <h1 className="text-lg font-bold text-foreground font-heading">SpoolmeterX <span className="text-muted-foreground font-normal text-sm">by MM3D</span></h1>
-        </div>
-        {/* Actions row */}
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">{active.length} active spools</p>
-          <div className="flex gap-2">
-            <button onClick={() => setShowSettings(v => !v)} className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground active:opacity-70">
-              <Settings className="w-4 h-4" />
-            </button>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-base font-bold text-foreground font-heading whitespace-nowrap">SpoolmeterX <span className="text-muted-foreground font-normal text-xs">by MM3D</span></h1>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               onClick={toggleSelectMode}
               className={`flex items-center justify-center w-9 h-9 rounded-lg active:opacity-70 ${selectMode ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
             >
-              <CheckSquare className="w-4 h-4" />
+              {selectMode ? <X className="w-4 h-4" /> : <CheckSquare className="w-4 h-4" />}
             </button>
             {!selectMode && <>
-              <Link to="/quick-jobs" className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                <Zap className="w-4 h-4" />Jobs
+              <Link to="/quick-jobs" className="flex items-center gap-1 bg-yellow-500/20 text-yellow-300 px-2.5 py-2 rounded-lg text-sm font-semibold active:opacity-80">
+                <Zap className="w-4 h-4" /><span className="hidden sm:inline">Jobs</span>
               </Link>
-              <Link to="/scan" className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                <ScanBarcode className="w-4 h-4" />Scan
+              <Link to="/scan" className="flex items-center gap-1 bg-primary text-primary-foreground px-2.5 py-2 rounded-lg text-sm font-semibold active:opacity-80">
+                <ScanBarcode className="w-4 h-4" /><span className="hidden sm:inline">Scan</span>
               </Link>
-              <Link to="/add" className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                <Plus className="w-4 h-4" />Add
+              <Link to="/add" className="flex items-center gap-1 bg-secondary text-secondary-foreground px-2.5 py-2 rounded-lg text-sm font-semibold active:opacity-80">
+                <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add</span>
               </Link>
             </>}
           </div>
         </div>
+        <p className="text-xs text-muted-foreground mt-1">{active.length} active spool{active.length !== 1 ? "s" : ""}</p>
       </div>
 
       {/* Pull-to-refresh indicator */}
@@ -470,18 +463,21 @@ export default function Dashboard({ openSettings }) {
 
       {/* Bulk Action Bar */}
       {selectMode && (
-        <div className="border-b border-border bg-card px-4 py-3 flex items-center gap-3">
-          <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm text-muted-foreground active:opacity-70">
+        <div className="border-b border-border bg-card px-4 py-3 flex items-center gap-2">
+          <button onClick={toggleSelectAll} className="flex items-center gap-1.5 text-sm text-muted-foreground active:opacity-70">
             {allSelected ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
-            <span>{allSelected ? "Deselect all" : "Select all"}</span>
+            <span>{allSelected ? "All" : "All"}</span>
           </button>
-          <span className="text-sm text-muted-foreground ml-1">{selectedIds.size} selected</span>
+          <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
           <div className="ml-auto flex gap-2">
             <Button size="sm" variant="outline" onClick={handleDuplicate} disabled={selectedIds.size === 0 || bulkLoading} className="gap-1.5 border-border text-foreground">
               <Copy className="w-3.5 h-3.5" />Duplicate
             </Button>
             <Button size="sm" variant="destructive" onClick={handleDelete} disabled={selectedIds.size === 0 || bulkLoading} className="gap-1.5">
               <Trash2 className="w-3.5 h-3.5" />Delete
+            </Button>
+            <Button size="sm" variant="outline" onClick={toggleSelectMode} className="gap-1.5 border-border text-foreground">
+              <X className="w-3.5 h-3.5" />Cancel
             </Button>
           </div>
         </div>
