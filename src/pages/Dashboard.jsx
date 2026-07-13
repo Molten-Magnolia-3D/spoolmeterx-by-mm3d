@@ -176,7 +176,7 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">{active.length} active spools</p>
           </div>
           <div className="absolute left-1/2 -translate-x-1/2">
-            <h1 className="text-lg font-bold text-foreground font-heading">Spool Sync <span className="text-muted-foreground font-normal text-sm">by MM3D</span></h1>
+            <h1 className="text-lg font-bold text-foreground font-heading">SpoolmeterX <span className="text-muted-foreground font-normal text-sm">by MM3D</span></h1>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowSettings(v => !v)} className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground active:opacity-70">
