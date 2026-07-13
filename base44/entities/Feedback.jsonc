@@ -1,0 +1,43 @@
+{
+  "name": "Feedback",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "bug",
+        "feature",
+        "general"
+      ],
+      "default": "general"
+    },
+    "message": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number"
+    },
+    "is_beta": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "reviewed",
+        "resolved"
+      ],
+      "default": "new"
+    }
+  },
+  "required": [
+    "message"
+  ]
+}

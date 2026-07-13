@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { exportSpoolsCsv } from "@/lib/exportCsv";
 import { parseCsv } from "@/lib/importCsv";
+import FeedbackForm from "@/components/FeedbackForm";
 
 const MATERIALS = ["All", "PLA", "PETG", "ABS", "ASA", "TPU"];
 const SORT_OPTIONS = [
@@ -43,9 +44,10 @@ export default function Dashboard() {
   const [importStatus, setImportStatus] = useState(null); // null | "importing" | "done" | "error"
   const [importMessage, setImportMessage] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
-  const { plan, spoolLimit, isTrialActive, trialDaysLeft } = useSubscription(currentUser);
+  const { plan, spoolLimit, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
 
   const debounceRef = useRef(null);
 
@@ -317,6 +319,21 @@ export default function Dashboard() {
                   🛠️ Admin Panel
                 </Button>
               </Link>
+            )}
+          </div>
+
+          {/* Feedback */}
+          <div className="border-t border-border pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-foreground">Send Feedback</p>
+              <button onClick={() => setShowFeedback(v => !v)} className="text-xs text-primary font-medium">{showFeedback ? "Hide" : "Open"}</button>
+            </div>
+            {showFeedback && (
+              <FeedbackForm
+                user={currentUser}
+                isBeta={isBeta}
+                onDone={() => setShowFeedback(false)}
+              />
             )}
           </div>
 

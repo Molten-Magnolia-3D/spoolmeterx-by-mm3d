@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Edit2, Check, X, RefreshCw, Tag, Users, Database, ScanBarcode } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Edit2, Check, X, RefreshCw, Tag, Users, Database, ScanBarcode, MessageSquare, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const TABS = ["Promo Codes", "Subscriptions", "Barcode Library", "All Spools"];
+const TABS = ["Promo Codes", "Subscriptions", "Barcode Library", "All Spools", "Feedback"];
 
 export default function AdminPage() {
   const [tab, setTab] = useState("Promo Codes");
@@ -53,6 +53,7 @@ export default function AdminPage() {
         {tab === "Subscriptions" && <SubscriptionsTab />}
         {tab === "Barcode Library" && <BarcodeLibraryTab />}
         {tab === "All Spools" && <AllSpoolsTab />}
+        {tab === "Feedback" && <FeedbackTab />}
       </div>
     </div>
   );
@@ -440,6 +441,100 @@ function BarcodeLibraryTab() {
                   </div>
                 </div>
               )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── FEEDBACK ──────────────────────────────────────────────────────────────────
+function FeedbackTab() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+
+  const load = async () => {
+    setLoading(true);
+    const data = await base44.entities.Feedback.list("-created_date", 200);
+    setItems(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const markStatus = async (id, status) => {
+    await base44.entities.Feedback.update(id, { status });
+    setItems(prev => prev.map(f => f.id === id ? { ...f, status } : f));
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this feedback?")) return;
+    await base44.entities.Feedback.delete(id);
+    setItems(prev => prev.filter(f => f.id !== id));
+  };
+
+  const filtered = filter === "all" ? items : items.filter(f => f.status === filter);
+  const newCount = items.filter(f => f.status === "new").length;
+
+  const typeEmoji = { bug: "🐛", feature: "💡", general: "💬" };
+  const statusColors = {
+    new: "bg-blue-900/40 text-blue-400",
+    reviewed: "bg-yellow-900/40 text-yellow-400",
+    resolved: "bg-green-900/40 text-green-400",
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{items.length} total {newCount > 0 && <span className="text-blue-400 font-semibold">· {newCount} new</span>}</p>
+        <button onClick={load} className="p-2 rounded-lg bg-muted active:opacity-70"><RefreshCw className="w-4 h-4 text-muted-foreground" /></button>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2">
+        {["all", "new", "reviewed", "resolved"].map(s => (
+          <button key={s} onClick={() => setFilter(s)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${filter === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
+      ) : filtered.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No feedback yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(f => (
+            <div key={f.id} className="bg-card border border-border rounded-xl p-4 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-base">{typeEmoji[f.type] || "💬"}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${statusColors[f.status] || "bg-muted text-muted-foreground"}`}>{f.status}</span>
+                  {f.is_beta && <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-400">Beta</span>}
+                  {f.rating > 0 && (
+                    <span className="text-xs text-yellow-400 flex items-center gap-0.5">
+                      <Star className="w-3 h-3 fill-yellow-400" />{f.rating}/5
+                    </span>
+                  )}
+                </div>
+                <button onClick={() => handleDelete(f.id)} className="w-7 h-7 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70 flex-shrink-0">
+                  <Trash2 className="w-3 h-3 text-destructive" />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">{f.user_email || "anonymous"}</p>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{f.message}</p>
+              <div className="flex gap-2 pt-1">
+                {["new", "reviewed", "resolved"].filter(s => s !== f.status).map(s => (
+                  <button key={s} onClick={() => markStatus(f.id, s)}
+                    className="text-xs px-3 py-1 rounded-lg bg-muted text-muted-foreground hover:text-foreground capitalize transition-colors">
+                    Mark {s}
+                  </button>
+                ))}
+              </div>
             </div>
           ))}
         </div>
