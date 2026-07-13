@@ -29,8 +29,8 @@ export default function ScanPage() {
     try {
       const results = await base44.entities.BarcodeMapping.filter({ barcode_value: code });
       if (results.length > 0) {
-        setFoundMapping(results[0]);
-        setStep("found");
+        // Known barcode — add straight to queue, no confirmation needed
+        setScanQueue(q => [...q, { code, mapping: results[0], quantity: 1 }]);
       } else {
         setFoundMapping(null);
         setStep("manual");
