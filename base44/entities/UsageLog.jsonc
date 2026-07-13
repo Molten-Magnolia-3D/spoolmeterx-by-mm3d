@@ -1,0 +1,25 @@
+{
+  "name": "UsageLog",
+  "type": "object",
+  "properties": {
+    "spool_id": {
+      "type": "string"
+    },
+    "grams_used": {
+      "type": "number"
+    },
+    "job_name": {
+      "type": "string"
+    },
+    "weight_before": {
+      "type": "number"
+    },
+    "weight_after": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "spool_id",
+    "grams_used"
+  ]
+}

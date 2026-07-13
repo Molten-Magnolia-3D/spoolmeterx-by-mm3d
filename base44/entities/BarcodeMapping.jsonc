@@ -1,0 +1,39 @@
+{
+  "name": "BarcodeMapping",
+  "type": "object",
+  "properties": {
+    "barcode_value": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "material": {
+      "type": "string",
+      "enum": [
+        "PLA",
+        "PETG",
+        "ABS",
+        "ASA",
+        "TPU"
+      ]
+    },
+    "color_name": {
+      "type": "string"
+    },
+    "color_hex": {
+      "type": "string"
+    },
+    "weight_grams": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "barcode_value",
+    "brand",
+    "material"
+  ]
+}
