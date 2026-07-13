@@ -60,9 +60,10 @@ const AuthenticatedApp = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<LandingPage />} />
+        <Route path="/home" element={<LandingPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
-        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route element={<ProtectedRoute unauthenticatedElement={<LandingPage />} />}>
           {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
           <Route path="/" element={null} />
           <Route path="/scan" element={null} />
