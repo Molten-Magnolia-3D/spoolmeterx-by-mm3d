@@ -19,10 +19,18 @@ import PricingPage from '@/pages/PricingPage';
 import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import AdminPage from '@/pages/AdminPage';
 import RedeemCodePage from '@/pages/RedeemCodePage';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import BottomTabBar from '@/components/BottomTabBar';
+import PageTransition from '@/components/PageTransition';
+import { useState } from 'react';
+
+const TAB_BAR_ROUTES = ["/", "/scan", "/quick-jobs"];
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
+  const [settingsTrigger, setSettingsTrigger] = useState(0);
+  const showTabBar = TAB_BAR_ROUTES.includes(location.pathname);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -42,22 +50,29 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/scan" element={<ScanPage />} />
-        <Route path="/add" element={<AddSpoolPage />} />
-        <Route path="/spool/:id" element={<SpoolDetail />} />
-        <Route path="/quick-jobs" element={<QuickJobsPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/upgrade-success" element={<UpgradeSuccess />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/redeem" element={<RedeemCodePage />} />
-      </Route>
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <>
+      <PageTransition>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+            <Route path="/" element={<Dashboard openSettings={settingsTrigger} />} />
+            <Route path="/scan" element={<ScanPage />} />
+            <Route path="/add" element={<AddSpoolPage />} />
+            <Route path="/spool/:id" element={<SpoolDetail />} />
+            <Route path="/quick-jobs" element={<QuickJobsPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/upgrade-success" element={<UpgradeSuccess />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/redeem" element={<RedeemCodePage />} />
+          </Route>
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </PageTransition>
+      {showTabBar && (
+        <BottomTabBar onSettingsPress={() => setSettingsTrigger(v => v + 1)} />
+      )}
+    </>
   );
 };
 

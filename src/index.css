@@ -86,6 +86,21 @@
   }
 }
 
+/* Hide scrollbars on mobile */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent text selection on interactive UI elements */
+button, a, nav, [role="tab"], [role="button"], header, .select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* Android / PWA safe area support */
 body {
   padding-top: env(safe-area-inset-top);

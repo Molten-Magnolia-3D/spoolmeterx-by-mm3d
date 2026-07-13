@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -25,7 +25,7 @@ const SORT_OPTIONS = [
   { value: "brand", label: "Brand A–Z" },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ openSettings }) {
   const [spools, setSpools] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
@@ -47,6 +47,38 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [isPulling, setIsPulling] = useState(false);
+  const [pullY, setPullY] = useState(0);
+  const touchStartY = useRef(0);
+  const contentRef = useRef(null);
+
+  // Open settings when tab bar Settings is pressed
+  useLayoutEffect(() => {
+    if (openSettings) setShowSettings(true);
+  }, [openSettings]);
+
+  // Pull-to-refresh
+  const handleTouchStart = (e) => {
+    if (contentRef.current?.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+  const handleTouchMove = (e) => {
+    if (touchStartY.current === 0) return;
+    const dy = e.touches[0].clientY - touchStartY.current;
+    if (dy > 0 && contentRef.current?.scrollTop === 0) {
+      setPullY(Math.min(dy * 0.4, 60));
+    }
+  };
+  const handleTouchEnd = async () => {
+    if (pullY > 45) {
+      setIsPulling(true);
+      await load();
+      setIsPulling(false);
+    }
+    setPullY(0);
+    touchStartY.current = 0;
+  };
 
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const { plan, spoolLimit, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
@@ -173,7 +205,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background"
+      ref={contentRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pt-3 pb-2">
         {/* Title row */}
@@ -207,6 +245,13 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Pull-to-refresh indicator */}
+      {(pullY > 0 || isPulling) && (
+        <div className="flex justify-center py-2 transition-all" style={{ height: isPulling ? 44 : pullY }}>
+          <div className={`w-6 h-6 border-2 border-primary border-t-transparent rounded-full ${isPulling ? "animate-spin" : ""}`} style={{ opacity: Math.min(pullY / 45, 1) }} />
+        </div>
+      )}
 
       {/* Trial Banner */}
       {isTrialActive && (
@@ -422,7 +467,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 pb-24">
         {/* Low Stock Widget */}
         {!loading && <LowStockWidget spools={spools} criticalThreshold={criticalThreshold} lowThreshold={lowThreshold} groupedAlerts={groupedAlerts} />}
 
