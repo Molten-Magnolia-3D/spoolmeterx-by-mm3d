@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Check, Zap, Star, Crown, ArrowLeft } from "lucide-react";
+import { Check, Zap, Crown, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -13,48 +13,33 @@ const PLANS = [
     icon: <Zap className="w-5 h-5" />,
     color: "text-muted-foreground",
     border: "border-border",
-    spools: 20,
-    features: ["Track up to 20 spools", "Barcode scanning", "Usage logging", "CSV export/import", "Quick Jobs macros"],
+    features: [
+      "Unlimited spool tracking",
+      "Barcode scanning",
+      "Usage logging",
+      "CSV export/import",
+      "Quick Jobs (view only)",
+      "Supported by ads",
+    ],
     cta: "Your current plan",
     disabled: true,
   },
   {
-    id: "hobby",
-    name: "Hobby",
-    price: "$5",
-    period: "/ month",
-    icon: <Star className="w-5 h-5" />,
-    color: "text-blue-400",
-    border: "border-blue-500/50",
-    highlight: false,
-    spools: 50,
-    features: ["Track up to 50 spools", "Everything in Free", "Priority support"],
-    cta: "Get Hobby",
-  },
-  {
     id: "pro",
     name: "Pro",
-    price: "$10",
+    price: "$5.99",
     period: "/ month",
     icon: <Crown className="w-5 h-5" />,
     color: "text-yellow-400",
     border: "border-yellow-500/50",
     highlight: true,
-    spools: "Unlimited",
-    features: ["Unlimited spools", "Everything in Hobby", "Early access to new features"],
-    cta: "Get Pro",
-  },
-  {
-    id: "lifetime",
-    name: "Lifetime",
-    price: "$149",
-    period: "one-time",
-    icon: <Crown className="w-5 h-5 text-purple-400" />,
-    color: "text-purple-400",
-    border: "border-purple-500/50",
-    spools: "Unlimited",
-    features: ["Unlimited spools forever", "All future updates included", "Everything in Pro", "No monthly fees — ever"],
-    cta: "Buy Lifetime Access",
+    features: [
+      "Everything in Free",
+      "No ads",
+      "Full Quick Jobs — create & run macros",
+      "Priority support",
+    ],
+    cta: "Upgrade to Pro",
   },
 ];
 
@@ -81,21 +66,19 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
+      <div className="max-w-md mx-auto">
         <div className="mb-8">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground text-sm mb-6 hover:text-foreground transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-foreground font-heading">Upgrade FilamentFlow</h1>
-          <p className="text-muted-foreground mt-2">Pick the plan that fits your shop. Cancel anytime.</p>
+          <h1 className="text-3xl font-bold text-foreground font-heading">SpoolmeterX Pro</h1>
+          <p className="text-muted-foreground mt-2">Remove ads and unlock Quick Jobs for $5.99/mo.</p>
         </div>
 
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-destructive/20 border border-destructive/40 text-destructive text-sm">{error}</div>
         )}
 
-        {/* Plans */}
         <div className="space-y-4">
           {PLANS.map((plan) => (
             <div
@@ -103,7 +86,7 @@ export default function PricingPage() {
               className={`relative rounded-xl border bg-card p-5 ${plan.border} ${plan.highlight ? "ring-2 ring-yellow-500/40" : ""}`}
             >
               {plan.highlight && (
-                <span className="absolute -top-3 left-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
+                <span className="absolute -top-3 left-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">Recommended</span>
               )}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -129,7 +112,7 @@ export default function PricingPage() {
                     onClick={() => !plan.disabled && handleUpgrade(plan.id)}
                     disabled={plan.disabled || loading === plan.id}
                     variant={plan.highlight ? "default" : "outline"}
-                    className={`whitespace-nowrap ${plan.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={`whitespace-nowrap ${plan.highlight ? "bg-yellow-500 hover:bg-yellow-400 text-black" : ""} ${plan.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {loading === plan.id ? "Redirecting…" : plan.cta}
                   </Button>
@@ -140,7 +123,7 @@ export default function PricingPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Payments are processed securely. Subscriptions can be canceled anytime.
+          Payments processed securely. Cancel anytime.
         </p>
       </div>
     </div>

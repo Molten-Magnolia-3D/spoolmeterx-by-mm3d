@@ -1,23 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
 const PLANS = {
-  hobby: {
-    name: "FilamentFlow Hobby — $5/mo",
-    price: "5.00",
-    spoolLimit: 50,
-    subscription: true,
-  },
   pro: {
-    name: "FilamentFlow Pro — $10/mo",
-    price: "10.00",
+    name: "SpoolmeterX Pro — $5.99/mo",
+    price: "5.99",
     spoolLimit: null, // unlimited
     subscription: true,
-  },
-  lifetime: {
-    name: "FilamentFlow Lifetime Access",
-    price: "149.00",
-    spoolLimit: null, // unlimited
-    subscription: false,
   },
 };
 

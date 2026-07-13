@@ -9,6 +9,7 @@ import {
 import SpoolGroupCard from "@/components/SpoolGroupCard";
 import LowStockWidget from "@/components/LowStockWidget";
 import QuickWeightSheet from "@/components/QuickWeightSheet";
+import AdBanner from "@/components/AdBanner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { exportSpoolsCsv } from "@/lib/exportCsv";
@@ -192,24 +193,12 @@ export default function Dashboard() {
               <Link to="/quick-jobs" className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
                 <Zap className="w-4 h-4" />Jobs
               </Link>
-              {active.length >= spoolLimit ? (
-                <Link to="/pricing" className="flex items-center gap-1.5 bg-primary/40 text-primary-foreground/70 px-3 py-2 rounded-lg text-sm font-semibold">
-                  <ScanBarcode className="w-4 h-4" />Scan
-                </Link>
-              ) : (
-                <Link to="/scan" className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                  <ScanBarcode className="w-4 h-4" />Scan
-                </Link>
-              )}
-              {active.length >= spoolLimit ? (
-                <Link to="/pricing" className="flex items-center gap-1.5 bg-secondary/40 text-secondary-foreground/70 px-3 py-2 rounded-lg text-sm font-semibold">
-                  <Plus className="w-4 h-4" />Add
-                </Link>
-              ) : (
-                <Link to="/add" className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                  <Plus className="w-4 h-4" />Add
-                </Link>
-              )}
+              <Link to="/scan" className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
+                <ScanBarcode className="w-4 h-4" />Scan
+              </Link>
+              <Link to="/add" className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
+                <Plus className="w-4 h-4" />Add
+              </Link>
             </>}
           </div>
         </div>
@@ -223,15 +212,10 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Upgrade Banner */}
-      {plan === "free" && active.length >= spoolLimit * 0.8 && (
-        <div className={`px-4 py-2 text-sm flex items-center justify-between gap-2 ${active.length >= spoolLimit ? "bg-red-950/60 border-b border-red-800/50 text-red-300" : "bg-yellow-950/60 border-b border-yellow-800/50 text-yellow-300"}`}>
-          <span>
-            {active.length >= spoolLimit
-              ? `🚫 Spool limit reached (${spoolLimit}). Upgrade to add more.`
-              : `⚠️ ${active.length}/${spoolLimit} spools used — upgrade for more.`}
-          </span>
-          <Link to="/pricing" className="font-semibold underline underline-offset-2 flex-shrink-0">Upgrade</Link>
+      {/* Ad banner for free users */}
+      {plan === "free" && !isTrialActive && (
+        <div className="px-4 pt-2">
+          <AdBanner />
         </div>
       )}
 
@@ -312,10 +296,10 @@ export default function Dashboard() {
           {/* Plan info */}
           <div className="border-t border-border pt-4 flex items-center justify-between">
             <div>
-              <p className="text-sm text-foreground font-medium capitalize">{plan} Plan</p>
-              <p className="text-xs text-muted-foreground">{spoolLimit >= 999999 ? "Unlimited" : spoolLimit} spools</p>
+              <p className="text-sm text-foreground font-medium capitalize">{isTrialActive ? "Trial" : plan} Plan</p>
+              <p className="text-xs text-muted-foreground">{plan === "free" && !isTrialActive ? "Includes ads • Quick Jobs locked" : "No ads • Full Quick Jobs"}</p>
             </div>
-            {plan === "free" && (
+            {plan === "free" && !isTrialActive && (
               <Link to="/pricing" className="text-sm text-primary font-semibold hover:underline">Upgrade →</Link>
             )}
           </div>
