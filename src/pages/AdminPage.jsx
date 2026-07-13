@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const TABS = ["Promo Codes", "Subscriptions", "Barcode Library", "All Spools", "Feedback"];
+const TABS = ["Promo Codes", "Subscriptions", "Filament Types", "Users", "Barcode Library", "All Spools", "Feedback"];
 
 export default function AdminPage() {
   const [tab, setTab] = useState("Promo Codes");
@@ -51,6 +51,8 @@ export default function AdminPage() {
       <div className="p-4">
         {tab === "Promo Codes" && <PromoCodesTab />}
         {tab === "Subscriptions" && <SubscriptionsTab />}
+        {tab === "Filament Types" && <FilamentTypesTab />}
+        {tab === "Users" && <UsersTab />}
         {tab === "Barcode Library" && <BarcodeLibraryTab />}
         {tab === "All Spools" && <AllSpoolsTab />}
         {tab === "Feedback" && <FeedbackTab />}
@@ -535,6 +537,178 @@ function FeedbackTab() {
                   </button>
                 ))}
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── FILAMENT TYPES ────────────────────────────────────────────────────────────
+function FilamentTypesTab() {
+  const [types, setTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({ name: "", description: "", is_active: true });
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const data = await base44.entities.FilamentType.list("-created_date", 100);
+    setTypes(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => { setEditId(null); setForm({ name: "", description: "", is_active: true }); setShowForm(true); };
+  const openEdit = (t) => { setEditId(t.id); setForm({ name: t.name, description: t.description || "", is_active: t.is_active ?? true }); setShowForm(true); };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return;
+    setSaving(true);
+    const payload = { name: form.name.trim().toUpperCase(), description: form.description, is_active: form.is_active };
+    if (editId) {
+      await base44.entities.FilamentType.update(editId, payload);
+    } else {
+      await base44.entities.FilamentType.create(payload);
+    }
+    setSaving(false);
+    setShowForm(false);
+    setEditId(null);
+    load();
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this filament type?")) return;
+    await base44.entities.FilamentType.delete(id);
+    load();
+  };
+
+  const handleToggle = async (t) => {
+    await base44.entities.FilamentType.update(t.id, { is_active: !t.is_active });
+    load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">{types.length} custom types</p>
+          <p className="text-xs text-muted-foreground/60">Built-in: PLA, PETG, ABS, ASA, TPU</p>
+        </div>
+        <Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="w-4 h-4" /> Add Type</Button>
+      </div>
+
+      {showForm && (
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <p className="font-semibold text-foreground">{editId ? "Edit Filament Type" : "New Filament Type"}</p>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Name (e.g. NYLON, PC, PA12)</Label>
+            <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="NYLON" className="h-10 bg-muted border-border text-foreground font-mono uppercase" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Description (optional)</Label>
+            <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="High-temp engineering filament" className="h-10 bg-muted border-border text-foreground" />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button size="sm" variant="outline" onClick={() => setShowForm(false)} className="flex-1 border-border text-foreground">Cancel</Button>
+            <Button size="sm" onClick={handleSave} disabled={saving || !form.name.trim()} className="flex-1">{saving ? "Saving…" : "Save"}</Button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
+      ) : types.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No custom filament types yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {types.map(t => (
+            <div key={t.id} className={`bg-card border rounded-xl p-4 flex items-center gap-3 ${t.is_active ? "border-border" : "border-border/40 opacity-60"}`}>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono font-bold text-foreground">{t.name}</p>
+                {t.description && <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>}
+                {!t.is_active && <span className="text-xs text-muted-foreground italic">Disabled</span>}
+              </div>
+              <div className="flex gap-1.5 flex-shrink-0">
+                <button onClick={() => handleToggle(t)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center active:opacity-70" title={t.is_active ? "Disable" : "Enable"}>
+                  {t.is_active ? <X className="w-3.5 h-3.5 text-muted-foreground" /> : <Check className="w-3.5 h-3.5 text-green-400" />}
+                </button>
+                <button onClick={() => openEdit(t)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center active:opacity-70">
+                  <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+                <button onClick={() => handleDelete(t.id)} className="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70">
+                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── USERS ─────────────────────────────────────────────────────────────────────
+function UsersTab() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const load = async () => {
+    setLoading(true);
+    const data = await base44.entities.User.list("-created_date", 200);
+    setUsers(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleDelete = async (user) => {
+    if (!window.confirm(`Remove account for ${user.email}? This will delete their subscription record but NOT their spools or data. This cannot be undone.`)) return;
+    setDeletingId(user.id);
+    try {
+      // Delete their subscription record
+      const subs = await base44.entities.UserSubscription.filter({ user_email: user.email });
+      await Promise.all(subs.map(s => base44.entities.UserSubscription.delete(s.id)));
+    } catch (e) {
+      console.error("Error removing subscription:", e);
+    }
+    setDeletingId(null);
+    load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{users.length} users</p>
+        <button onClick={load} className="p-2 rounded-lg bg-muted active:opacity-70"><RefreshCw className="w-4 h-4 text-muted-foreground" /></button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
+      ) : users.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No users found.</p>
+      ) : (
+        <div className="space-y-2">
+          {users.map(u => (
+            <div key={u.id} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{u.email}</p>
+                <p className="text-xs text-muted-foreground">{u.full_name || "No name"} · <span className="capitalize">{u.role}</span></p>
+                <p className="text-xs text-muted-foreground/60">Joined {new Date(u.created_date).toLocaleDateString()}</p>
+              </div>
+              <button
+                onClick={() => handleDelete(u)}
+                disabled={deletingId === u.id}
+                className="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70 flex-shrink-0 disabled:opacity-40"
+                title="Remove account"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+              </button>
             </div>
           ))}
         </div>

@@ -16,6 +16,7 @@ import PricingPage from '@/pages/PricingPage';
 import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import AdminPage from '@/pages/AdminPage';
 import RedeemCodePage from '@/pages/RedeemCodePage';
+import MyBarcodesPage from '@/pages/MyBarcodesPage';
 import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -77,6 +78,9 @@ const AuthenticatedApp = () => {
           } />
           <Route path="/redeem" element={
             <PageTransition><RedeemCodePage /></PageTransition>
+          } />
+          <Route path="/my-barcodes" element={
+            <PageTransition><MyBarcodesPage /></PageTransition>
           } />
         </Route>
         <Route path="*" element={<PageNotFound />} />

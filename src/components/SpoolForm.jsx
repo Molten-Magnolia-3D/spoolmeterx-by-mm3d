@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, X } from "lucide-react";
 import { swatchStyle } from "@/components/SpoolSwatch";
 
-const MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU"];
+const BASE_MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU"];
 const PRESET_COLORS = [
   { name: "Black", hex: "#1a1a1a" },
   { name: "White", hex: "#f5f5f5" },
@@ -23,6 +24,17 @@ const PRESET_COLORS = [
 ];
 
 export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loading, showQuantity = false, maxQuantity = 50 }) {
+  const [materials, setMaterials] = useState(BASE_MATERIALS);
+
+  useEffect(() => {
+    base44.entities.FilamentType.filter({ is_active: true }).then(types => {
+      if (types.length > 0) {
+        const extras = types.map(t => t.name).filter(n => !BASE_MATERIALS.includes(n));
+        setMaterials([...BASE_MATERIALS, ...extras]);
+      }
+    }).catch(() => {});
+  }, []);
+
   const [form, setForm] = useState({
     brand: "",
     material: "PLA",
@@ -82,7 +94,7 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-card border-border">
-            {MATERIALS.map(m => (
+            {materials.map(m => (
               <SelectItem key={m} value={m} className="text-foreground">{m}</SelectItem>
             ))}
           </SelectContent>

@@ -360,6 +360,11 @@ export default function Dashboard({ openSettings }) {
                 🎟️ Redeem a Promo / Trial Code
               </Button>
             </Link>
+            <Link to="/my-barcodes" onClick={() => setShowSettings(false)}>
+              <Button variant="outline" size="sm" className="w-full gap-2 border-border text-foreground">
+                🏷️ My Barcode Library
+              </Button>
+            </Link>
             {currentUser?.role === "admin" && (
               <Link to="/admin" onClick={() => setShowSettings(false)}>
                 <Button variant="outline" size="sm" className="w-full gap-2 border-border text-foreground">
