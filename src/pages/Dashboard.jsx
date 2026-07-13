@@ -11,6 +11,7 @@ import QuickWeightSheet from "@/components/QuickWeightSheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { exportSpoolsCsv } from "@/lib/exportCsv";
+import { parseCsv } from "@/lib/importCsv";
 
 const MATERIALS = ["All", "PLA", "PETG", "ABS", "ASA", "TPU"];
 const SORT_OPTIONS = [
@@ -37,6 +38,8 @@ export default function Dashboard() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [quickLogSpool, setQuickLogSpool] = useState(null);
+  const [importStatus, setImportStatus] = useState(null); // null | "importing" | "done" | "error"
+  const [importMessage, setImportMessage] = useState("");
 
   useEffect(() => {
     load();
@@ -126,6 +129,25 @@ export default function Dashboard() {
     setSelectMode(false);
     setBulkLoading(false);
     await load();
+  };
+
+  const handleImportCsv = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setImportStatus("importing");
+    setImportMessage("");
+    try {
+      const text = await file.text();
+      const rows = parseCsv(text);
+      await base44.entities.Spool.bulkCreate(rows);
+      setImportStatus("done");
+      setImportMessage(`Imported ${rows.length} spool${rows.length !== 1 ? "s" : ""} successfully.`);
+      await load();
+    } catch (err) {
+      setImportStatus("error");
+      setImportMessage(err.message || "Import failed.");
+    }
   };
 
   const saveNotifyEmail = (email, enabled) => {
@@ -241,8 +263,8 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Export */}
-          <div className="border-t border-border pt-4">
+          {/* Export / Import */}
+          <div className="border-t border-border pt-4 space-y-2">
             <Button
               variant="outline"
               size="sm"
@@ -252,6 +274,16 @@ export default function Dashboard() {
               <Download className="w-4 h-4" />
               Export Inventory as CSV
             </Button>
+            <label className="w-full">
+              <div className={`flex items-center justify-center gap-2 h-9 px-3 rounded-md text-sm font-medium border border-border cursor-pointer transition-colors hover:bg-accent ${importStatus === "importing" ? "opacity-50 pointer-events-none" : "text-foreground bg-transparent"}`}>
+                <Download className="w-4 h-4 rotate-180" />
+                {importStatus === "importing" ? "Importing…" : "Import from CSV"}
+              </div>
+              <input type="file" accept=".csv" className="hidden" onChange={handleImportCsv} />
+            </label>
+            {importStatus === "done" && <p className="text-xs text-green-400">{importMessage}</p>}
+            {importStatus === "error" && <p className="text-xs text-red-400">{importMessage}</p>}
+            <p className="text-xs text-muted-foreground/60">CSV must include columns: brand, material, color_name, starting_weight_grams, current_weight_grams. Exported CSVs work directly.</p>
           </div>
         </div>
       )}
