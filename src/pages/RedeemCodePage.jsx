@@ -10,56 +10,17 @@ export default function RedeemCodePage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
 
   const handleRedeem = async () => {
     if (!code.trim()) return;
     setError("");
     setLoading(true);
     try {
-      const upper = code.trim().toUpperCase();
-      const matches = await base44.entities.PromoCode.filter({ code: upper, is_active: true });
-      if (matches.length === 0) {
-        setError("Invalid or expired code. Please check and try again.");
-        setLoading(false);
-        return;
-      }
-      const promo = matches[0];
-      if (promo.uses >= promo.max_uses) {
-        setError("This code has reached its maximum number of uses.");
-        setLoading(false);
-        return;
-      }
-
-      // Calculate expiry
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + promo.duration_days);
-
-      // Upsert subscription
-      if (currentUser?.email) {
-        const existing = await base44.entities.UserSubscription.filter({ user_email: currentUser.email });
-        const payload = {
-          plan: promo.plan,
-          status: "active",
-          spool_limit: promo.spool_limit,
-          trial_ends_at: expiresAt.toISOString(),
-          user_email: currentUser.email,
-          user_id: currentUser.id,
-        };
-        if (existing.length > 0) {
-          await base44.entities.UserSubscription.update(existing[0].id, payload);
-        } else {
-          await base44.entities.UserSubscription.create(payload);
-        }
-        // Increment uses
-        await base44.entities.PromoCode.update(promo.id, { uses: (promo.uses || 0) + 1 });
-      }
-
-      setSuccess({ plan: promo.plan, days: promo.duration_days });
+      const res = await base44.functions.invoke("redeem-promo-code", { code: code.trim() });
+      setSuccess({ plan: res.data.plan, days: res.data.days });
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err?.response?.data?.error || err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

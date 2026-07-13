@@ -23,7 +23,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    const origin = req.headers.get("Origin") || "https://app.base44.com";
+    const ALLOWED_ORIGINS = [
+      "https://app.base44.com",
+      "https://spoolmeterx.base44.app",
+    ];
+    const requestOrigin = req.headers.get("Origin") || "";
+    const origin = ALLOWED_ORIGINS.find(o => requestOrigin.startsWith(o)) || ALLOWED_ORIGINS[0];
 
     const item = {
       name: planConfig.name,
