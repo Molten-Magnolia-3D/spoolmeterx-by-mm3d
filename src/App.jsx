@@ -17,6 +17,8 @@ import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import AdminPage from '@/pages/AdminPage';
 import RedeemCodePage from '@/pages/RedeemCodePage';
 import MyBarcodesPage from '@/pages/MyBarcodesPage';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
 import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -56,6 +58,8 @@ const AuthenticatedApp = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
           <Route path="/" element={null} />
