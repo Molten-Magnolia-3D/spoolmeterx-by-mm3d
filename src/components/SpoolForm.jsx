@@ -49,7 +49,11 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
     const data = { ...form };
     data.starting_weight_grams = parseFloat(data.starting_weight_grams) || 0;
     data.current_weight_grams = parseFloat(data.current_weight_grams) || 0;
-    if (data.purchase_price_per_kg) data.purchase_price_per_kg = parseFloat(data.purchase_price_per_kg);
+    if (data.purchase_price_per_kg !== "" && data.purchase_price_per_kg != null) {
+      data.purchase_price_per_kg = parseFloat(data.purchase_price_per_kg);
+    } else {
+      delete data.purchase_price_per_kg;
+    }
     // keep color_hex in sync for backwards compat
     if (data.color_type === "multi" && data.color_hex_list?.length > 0) data.color_hex = data.color_hex_list[0];
     if (data.color_type === "rainbow") data.color_hex = "#ff7700";
