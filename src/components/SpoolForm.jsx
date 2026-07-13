@@ -22,7 +22,7 @@ const PRESET_COLORS = [
   { name: "Transparent", hex: "#c5e0f5" },
 ];
 
-export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loading }) {
+export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loading, showQuantity = false }) {
   const [form, setForm] = useState({
     brand: "",
     material: "PLA",
@@ -38,6 +38,7 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
     notes: "",
     date_opened: new Date().toISOString().split("T")[0],
     is_empty: false,
+    quantity: 1,
     ...initialData,
   });
 
@@ -256,6 +257,27 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
           className="h-12 bg-muted border-border text-foreground"
         />
       </div>
+
+      {showQuantity && (
+        <div>
+          <Label className="text-sm text-muted-foreground mb-1 block">How many spools?</Label>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => set("quantity", Math.max(1, (parseInt(form.quantity) || 1) - 1))} className="w-12 h-12 rounded-lg bg-muted border border-border text-xl font-bold text-foreground active:opacity-70">−</button>
+            <Input
+              type="number"
+              value={form.quantity}
+              onChange={e => set("quantity", Math.max(1, parseInt(e.target.value) || 1))}
+              min="1"
+              max="50"
+              className="h-12 bg-muted border-border text-foreground text-center text-lg font-semibold"
+            />
+            <button type="button" onClick={() => set("quantity", Math.min(50, (parseInt(form.quantity) || 1) + 1))} className="w-12 h-12 rounded-lg bg-muted border border-border text-xl font-bold text-foreground active:opacity-70">+</button>
+          </div>
+          {(parseInt(form.quantity) || 1) > 1 && (
+            <p className="text-xs text-muted-foreground mt-1.5">{form.quantity} identical spools will be added to your inventory.</p>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-3 pt-2">
         {onCancel && (

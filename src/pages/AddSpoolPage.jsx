@@ -11,7 +11,13 @@ export default function AddSpoolPage() {
   const handleSubmit = async (data) => {
     setLoading(true);
     try {
-      await base44.entities.Spool.create(data);
+      const { quantity, ...spoolData } = data;
+      const count = Math.max(1, parseInt(quantity) || 1);
+      if (count === 1) {
+        await base44.entities.Spool.create(spoolData);
+      } else {
+        await base44.entities.Spool.bulkCreate(Array.from({ length: count }, () => ({ ...spoolData })));
+      }
       navigate("/");
     } finally {
       setLoading(false);
@@ -31,6 +37,7 @@ export default function AddSpoolPage() {
           onSubmit={handleSubmit}
           onCancel={() => navigate("/")}
           loading={loading}
+          showQuantity
         />
       </div>
     </div>
