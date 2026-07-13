@@ -7,11 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
-import Dashboard from '@/pages/Dashboard';
-import ScanPage from '@/pages/ScanPage';
 import AddSpoolPage from '@/pages/AddSpoolPage';
 import SpoolDetail from '@/pages/SpoolDetail';
-import QuickJobsPage from '@/pages/QuickJobsPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -19,18 +16,15 @@ import PricingPage from '@/pages/PricingPage';
 import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import AdminPage from '@/pages/AdminPage';
 import RedeemCodePage from '@/pages/RedeemCodePage';
-import { Navigate, useLocation } from 'react-router-dom';
-import BottomTabBar from '@/components/BottomTabBar';
+import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
-import { useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 
-const TAB_BAR_ROUTES = ["/", "/scan", "/quick-jobs"];
+const TAB_ROUTES = ["/", "/scan", "/quick-jobs"];
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const location = useLocation();
-  const [settingsTrigger, setSettingsTrigger] = useState(0);
-  const showTabBar = TAB_BAR_ROUTES.includes(location.pathname);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -49,29 +43,49 @@ const AuthenticatedApp = () => {
     }
   }
 
+  const isTabRoute = TAB_ROUTES.includes(location.pathname);
+
   return (
     <>
-      <PageTransition>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-            <Route path="/" element={<Dashboard openSettings={settingsTrigger} />} />
-            <Route path="/scan" element={<ScanPage />} />
-            <Route path="/add" element={<AddSpoolPage />} />
-            <Route path="/spool/:id" element={<SpoolDetail />} />
-            <Route path="/quick-jobs" element={<QuickJobsPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/upgrade-success" element={<UpgradeSuccess />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/redeem" element={<RedeemCodePage />} />
-          </Route>
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-      </PageTransition>
-      {showTabBar && (
-        <BottomTabBar onSettingsPress={() => setSettingsTrigger(v => v + 1)} />
-      )}
+      {/*
+        Tab pages are always rendered (never unmounted) so scroll position and
+        component state survive tab switches. Only visibility is toggled.
+        Routes still handles auth via ProtectedRoute + Outlet for the tab wildcard.
+      */}
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+          {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
+          <Route path="/" element={null} />
+          <Route path="/scan" element={null} />
+          <Route path="/quick-jobs" element={null} />
+          <Route path="/add" element={
+            <PageTransition><AddSpoolPage /></PageTransition>
+          } />
+          <Route path="/spool/:id" element={
+            <PageTransition><SpoolDetail /></PageTransition>
+          } />
+          <Route path="/pricing" element={
+            <PageTransition><PricingPage /></PageTransition>
+          } />
+          <Route path="/upgrade-success" element={
+            <PageTransition><UpgradeSuccess /></PageTransition>
+          } />
+          <Route path="/admin" element={
+            <PageTransition><AdminPage /></PageTransition>
+          } />
+          <Route path="/redeem" element={
+            <PageTransition><RedeemCodePage /></PageTransition>
+          } />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+
+      {/* Always-mounted tab shell — display:none hides it without unmounting */}
+      <div style={{ display: isTabRoute ? "block" : "none" }}>
+        <TabLayout />
+      </div>
     </>
   );
 };

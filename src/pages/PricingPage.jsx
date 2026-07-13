@@ -2,7 +2,8 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Check, Zap, Crown, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import useSafeBack from "@/hooks/useSafeBack";
 
 const PLANS = [
   {
@@ -44,6 +45,8 @@ const PLANS = [
 ];
 
 export default function PricingPage() {
+  const navigate = useNavigate();
+  const goBack = useSafeBack("/");
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState("");
 
@@ -68,9 +71,9 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="max-w-md mx-auto">
         <div className="mb-8">
-          <Link to="/" className="flex items-center gap-2 text-muted-foreground text-sm mb-6 hover:text-foreground transition-colors">
+          <button onClick={goBack} className="flex items-center gap-2 text-muted-foreground text-sm mb-6 hover:text-foreground transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to dashboard
-          </Link>
+          </button>
           <h1 className="text-3xl font-bold text-foreground font-heading">SpoolmeterX Pro</h1>
           <p className="text-muted-foreground mt-2">Remove ads and unlock Quick Jobs for $5.99/mo.</p>
         </div>

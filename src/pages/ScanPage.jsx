@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate, Link } from "react-router-dom";
+import useSafeBack from "@/hooks/useSafeBack";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import SpoolForm from "@/components/SpoolForm";
 import { ArrowLeft, CheckCircle, Camera, ScanBarcode, Plus, Minus, Trash2, PackagePlus } from "lucide-react";
@@ -10,6 +11,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 
 export default function ScanPage() {
   const navigate = useNavigate();
+  const goBack = useSafeBack("/");
   const [step, setStep] = useState("choose"); // choose | scanning | scanner | queue | found | manual
   const [scannedCode, setScannedCode] = useState(null);
   const [foundMapping, setFoundMapping] = useState(null);
@@ -152,7 +154,7 @@ export default function ScanPage() {
     return (
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="p-2 -ml-2 rounded-full active:bg-muted">
+          <button onClick={goBack} className="p-2 -ml-2 rounded-full active:bg-muted">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <span className="font-semibold text-foreground">Scan Spool</span>

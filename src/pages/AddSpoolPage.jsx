@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate, Link } from "react-router-dom";
+import useSafeBack from "@/hooks/useSafeBack";
 import { ArrowLeft } from "lucide-react";
 import SpoolForm from "@/components/SpoolForm";
 import { useSubscription } from "@/hooks/useSubscription";
 
 export default function AddSpoolPage() {
   const navigate = useNavigate();
+  const goBack = useSafeBack("/");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeCount, setActiveCount] = useState(0);
@@ -51,7 +53,7 @@ export default function AddSpoolPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate("/")} className="p-2 -ml-2 rounded-full active:bg-muted">
+        <button onClick={goBack} className="p-2 -ml-2 rounded-full active:bg-muted">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <span className="font-semibold text-foreground">Add Spool Manually</span>
@@ -68,7 +70,7 @@ export default function AddSpoolPage() {
       <div className="p-4 pb-8">
         <SpoolForm
           onSubmit={handleSubmit}
-          onCancel={() => navigate("/")}
+          onCancel={goBack}
           loading={loading}
           showQuantity
           maxQuantity={Math.max(1, spoolLimit - activeCount)}

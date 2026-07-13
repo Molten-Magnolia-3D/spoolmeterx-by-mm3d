@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useParams, useNavigate } from "react-router-dom";
+import useSafeBack from "@/hooks/useSafeBack";
 import { ArrowLeft, Pencil, Trash2, Minus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ function getStatus(current, starting) {
 export default function SpoolDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const goBack = useSafeBack("/");
   const [spool, setSpool] = useState(null);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,14 +54,24 @@ export default function SpoolDetail() {
     const grams = parseFloat(gramsUsed);
     if (!grams || grams <= 0) return;
     setLogLoading(true);
-    const newWeight = Math.max(0, spool.current_weight_grams - grams);
+    const weightBefore = spool.current_weight_grams;
+    const newWeight = Math.max(0, weightBefore - grams);
+
+    // Optimistic update
+    const optimisticLog = { id: `opt-${Date.now()}`, grams_used: grams, job_name: jobName || "Print job", weight_after: newWeight, created_date: new Date().toISOString() };
+    setSpool(s => ({ ...s, current_weight_grams: newWeight, is_empty: newWeight <= 0 }));
+    setLogs(l => [optimisticLog, ...l]);
+    setGramsUsed("");
+    setJobName("");
+    setView("detail");
+
     try {
       await Promise.all([
         base44.entities.UsageLog.create({
           spool_id: id,
           grams_used: grams,
           job_name: jobName || undefined,
-          weight_before: spool.current_weight_grams,
+          weight_before: weightBefore,
           weight_after: newWeight,
         }),
         base44.entities.Spool.update(id, {
@@ -67,10 +79,11 @@ export default function SpoolDetail() {
           is_empty: newWeight <= 0,
         }),
       ]);
-      setGramsUsed("");
-      setJobName("");
-      setView("detail");
-      loadAll();
+      loadAll(); // reconcile with server
+    } catch {
+      // Revert on failure
+      setSpool(s => ({ ...s, current_weight_grams: weightBefore, is_empty: weightBefore <= 0 }));
+      setLogs(l => l.filter(lg => lg.id !== optimisticLog.id));
     } finally {
       setLogLoading(false);
     }
@@ -119,7 +132,7 @@ export default function SpoolDetail() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/")} className="p-2 -ml-2 rounded-full active:bg-muted">
+          <button onClick={goBack} className="p-2 -ml-2 rounded-full active:bg-muted">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <span className="font-semibold text-foreground truncate max-w-[180px]">{spool.brand} {spool.color_name}</span>

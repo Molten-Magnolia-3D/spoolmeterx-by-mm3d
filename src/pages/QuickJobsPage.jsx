@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
+import useSafeBack from "@/hooks/useSafeBack";
 import { ArrowLeft, Plus, Play, Trash2, Pencil, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QuickJobForm from "@/components/QuickJobForm";
@@ -9,6 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 
 export default function QuickJobsPage() {
   const navigate = useNavigate();
+  const goBack = useSafeBack("/");
   const [jobs, setJobs] = useState([]);
   const [spools, setSpools] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,31 +61,33 @@ export default function QuickJobsPage() {
         return;
       }
 
-      // Deduct all at once
+      // Compute new weights
+      const updates = job.usages.map(u => {
+        const s = spoolMap[u.spool_id];
+        return { usage: u, spool: s, newWeight: Math.max(0, s.current_weight_grams - u.grams) };
+      });
+
+      // Optimistic: update local spools list immediately
+      setSpools(prev => prev.map(s => {
+        const upd = updates.find(u => u.usage.spool_id === s.id);
+        return upd ? { ...s, current_weight_grams: upd.newWeight, is_empty: upd.newWeight <= 0 } : s;
+      }));
+      setRunResult({ success: true, message: `"${job.name}" logged! All spools updated.` });
+
+      // Persist to server
       await Promise.all(
-        job.usages.map(u => {
-          const s = spoolMap[u.spool_id];
-          const newWeight = Math.max(0, s.current_weight_grams - u.grams);
-          return Promise.all([
-            base44.entities.Spool.update(u.spool_id, {
-              current_weight_grams: newWeight,
-              is_empty: newWeight <= 0,
-            }),
-            base44.entities.UsageLog.create({
-              spool_id: u.spool_id,
-              grams_used: u.grams,
-              job_name: job.name,
-              weight_before: s.current_weight_grams,
-              weight_after: newWeight,
-            }),
-          ]);
-        })
+        updates.map(({ usage: u, spool: s, newWeight }) =>
+          Promise.all([
+            base44.entities.Spool.update(u.spool_id, { current_weight_grams: newWeight, is_empty: newWeight <= 0 }),
+            base44.entities.UsageLog.create({ spool_id: u.spool_id, grams_used: u.grams, job_name: job.name, weight_before: s.current_weight_grams, weight_after: newWeight }),
+          ])
+        )
       );
 
-      setRunResult({ success: true, message: `"${job.name}" logged! All spools updated.` });
-      loadAll();
+      loadAll(); // reconcile
     } catch (err) {
-      setRunResult({ success: false, message: "Something went wrong. Try again." });
+      setRunResult({ success: false, message: "Something went wrong. Changes reverted." });
+      loadAll(); // revert optimistic state
     } finally {
       setRunning(null);
     }
@@ -121,7 +125,7 @@ export default function QuickJobsPage() {
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/")} className="p-2 -ml-2 rounded-full active:bg-muted">
+          <button onClick={goBack} className="p-2 -ml-2 rounded-full active:bg-muted">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <span className="font-semibold text-foreground">Quick Jobs</span>

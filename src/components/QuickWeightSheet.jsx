@@ -28,18 +28,25 @@ export default function QuickWeightSheet({ spool, onClose, onSaved }) {
       gramsUsed = Math.max(0, weightBefore - val);
     }
 
-    await base44.entities.Spool.update(spool.id, { current_weight_grams: weightAfter });
-    await base44.entities.UsageLog.create({
-      spool_id: spool.id,
-      grams_used: gramsUsed,
-      job_name: jobName || "Quick log",
-      weight_before: weightBefore,
-      weight_after: weightAfter,
-    });
-
-    setSaving(false);
-    onSaved();
+    // Optimistic close — caller's onSaved updates UI immediately
+    onSaved({ ...spool, current_weight_grams: weightAfter });
     onClose();
+
+    try {
+      await base44.entities.Spool.update(spool.id, { current_weight_grams: weightAfter });
+      await base44.entities.UsageLog.create({
+        spool_id: spool.id,
+        grams_used: gramsUsed,
+        job_name: jobName || "Quick log",
+        weight_before: weightBefore,
+        weight_after: weightAfter,
+      });
+    } catch {
+      // Revert: reload real data
+      onSaved(null);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
