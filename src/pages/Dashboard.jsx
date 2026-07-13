@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [criticalThreshold, setCriticalThreshold] = useState(() => parseInt(localStorage.getItem("ff_critical") || "100"));
   const [lowThreshold, setLowThreshold] = useState(() => parseInt(localStorage.getItem("ff_low") || "300"));
+  const [groupedAlerts, setGroupedAlerts] = useState(() => localStorage.getItem("ff_grouped_alerts") === "true");
 
   useEffect(() => {
     load();
@@ -109,12 +110,25 @@ export default function Dashboard() {
               />
             </div>
           </div>
+          {/* Grouped alerts toggle */}
+          <div className="flex items-center justify-between pt-1">
+            <div>
+              <p className="text-sm text-foreground font-medium">Alert by total filament</p>
+              <p className="text-xs text-muted-foreground">Alert when combined grams of a color is low, not per-spool</p>
+            </div>
+            <button
+              onClick={() => { setGroupedAlerts(v => { localStorage.setItem("ff_grouped_alerts", !v); return !v; }); }}
+              className={`w-10 h-5 rounded-full transition-colors flex-shrink-0 ml-3 relative ${groupedAlerts ? "bg-primary" : "bg-muted"}`}
+            >
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${groupedAlerts ? "left-5" : "left-0.5"}`} />
+            </button>
+          </div>
         </div>
       )}
 
       <div className="px-4 py-4 space-y-4">
         {/* Low Stock Widget */}
-        {!loading && <LowStockWidget spools={spools} criticalThreshold={criticalThreshold} lowThreshold={lowThreshold} />}
+        {!loading && <LowStockWidget spools={spools} criticalThreshold={criticalThreshold} lowThreshold={lowThreshold} groupedAlerts={groupedAlerts} />}
 
         {/* Material Filter */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
