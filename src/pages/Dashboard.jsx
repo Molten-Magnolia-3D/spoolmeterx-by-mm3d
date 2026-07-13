@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
   Plus, ScanBarcode, Package, Zap, Settings, X,
-  CheckSquare, Square, Copy, Trash2, Search, ArrowUpDown, Download, Bell
+  CheckSquare, Square, Copy, Trash2, Search, ArrowUpDown, Download, Bell, LogOut
 } from "lucide-react";
 import SpoolGroupCard from "@/components/SpoolGroupCard";
 import LowStockWidget from "@/components/LowStockWidget";
@@ -316,6 +316,19 @@ export default function Dashboard() {
             {plan === "free" && (
               <Link to="/pricing" className="text-sm text-primary font-semibold hover:underline">Upgrade →</Link>
             )}
+          </div>
+
+          {/* Sign out */}
+          <div className="border-t border-border pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => base44.auth.logout("/login")}
+              className="w-full gap-2 border-border text-foreground"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
           </div>
 
           {/* Export / Import */}
