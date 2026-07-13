@@ -101,6 +101,11 @@ button, a, nav, [role="tab"], [role="button"], header, .select-none {
   user-select: none;
 }
 
+/* Expose safe-area-inset-top as a CSS custom property for JS to read */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+}
+
 /* Android / PWA safe area support */
 body {
   padding-top: env(safe-area-inset-top);

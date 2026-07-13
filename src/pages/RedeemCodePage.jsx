@@ -1,14 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Link, useNavigate } from "react-router-dom";
-import useSafeBack from "@/hooks/useSafeBack";
-import { ArrowLeft, Tag, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Tag, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SubPageHeader from "@/components/SubPageHeader";
 
 export default function RedeemCodePage() {
-  const navigate = useNavigate();
-  const goBack = useSafeBack("/");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
@@ -31,12 +29,7 @@ export default function RedeemCodePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={goBack} className="p-2 -ml-2 rounded-full active:bg-muted">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <span className="font-bold text-foreground">Redeem Code</span>
-      </div>
+      <SubPageHeader title="Redeem Code" />
 
       <div className="p-6 max-w-sm mx-auto">
         {success ? (

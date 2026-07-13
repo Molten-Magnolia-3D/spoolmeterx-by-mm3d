@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Edit2, Check, X, RefreshCw, Tag, Users, Database, ScanBarcode, MessageSquare, Star } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, RefreshCw, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import SubPageHeader from "@/components/SubPageHeader";
+import NativeSelect from "@/components/NativeSelect";
 
 const TABS = ["Promo Codes", "Subscriptions", "Filament Types", "Users", "Barcode Library", "All Spools", "Feedback"];
 
@@ -28,12 +30,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center gap-3">
-        <Link to="/" className="p-2 -ml-2 rounded-full active:bg-muted">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <span className="font-bold text-foreground text-lg">Admin Panel</span>
-      </div>
+      <SubPageHeader title="Admin Panel" />
 
       {/* Tab bar */}
       <div className="flex gap-1 px-4 py-3 overflow-x-auto border-b border-border">
@@ -138,9 +135,7 @@ function PromoCodesTab() {
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Plan granted</Label>
-              <select value={form.plan} onChange={e => set("plan", e.target.value)} className="h-10 w-full bg-muted border border-border text-foreground text-sm rounded-md px-2">
-                {["trial","hobby","pro","lifetime"].map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+              <NativeSelect value={form.plan} onChange={v => set("plan", v)} options={["trial","hobby","pro","lifetime"]} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Duration (days)</Label>
@@ -270,15 +265,11 @@ function SubscriptionsTab() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs text-muted-foreground mb-1 block">Plan</Label>
-                      <select value={editForm.plan} onChange={e => setEditForm(f => ({ ...f, plan: e.target.value }))} className="h-9 w-full bg-muted border border-border text-foreground text-sm rounded-md px-2">
-                        {["free","trial","hobby","pro","lifetime"].map(p => <option key={p} value={p}>{p}</option>)}
-                      </select>
+                      <NativeSelect value={editForm.plan} onChange={v => setEditForm(f => ({ ...f, plan: v }))} options={["free","trial","hobby","pro","lifetime"]} />
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground mb-1 block">Status</Label>
-                      <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className="h-9 w-full bg-muted border border-border text-foreground text-sm rounded-md px-2">
-                        {["pending","active","canceled","ended"].map(p => <option key={p} value={p}>{p}</option>)}
-                      </select>
+                      <NativeSelect value={editForm.status} onChange={v => setEditForm(f => ({ ...f, status: v }))} options={["pending","active","canceled","ended"]} />
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground mb-1 block">Spool limit</Label>
@@ -399,9 +390,7 @@ function BarcodeLibraryTab() {
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground mb-1 block">Material</Label>
-                      <select value={editForm.material} onChange={e => setEditForm(f => ({ ...f, material: e.target.value }))} className="h-9 w-full bg-muted border border-border text-foreground text-sm rounded-md px-2">
-                        {["PLA","PETG","ABS","ASA","TPU"].map(p => <option key={p} value={p}>{p}</option>)}
-                      </select>
+                      <NativeSelect value={editForm.material} onChange={v => setEditForm(f => ({ ...f, material: v }))} options={["PLA","PETG","ABS","ASA","TPU"]} />
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground mb-1 block">Color name</Label>

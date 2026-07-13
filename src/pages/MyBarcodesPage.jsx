@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Plus, Edit2, Trash2, ScanBarcode } from "lucide-react";
+import { Plus, Edit2, Trash2, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import useSafeBack from "@/hooks/useSafeBack";
+import SubPageHeader from "@/components/SubPageHeader";
+import NativeSelect from "@/components/NativeSelect";
 import BarcodeScanner from "@/components/BarcodeScanner";
 
 const MATERIALS_DEFAULT = ["PLA", "PETG", "ABS", "ASA", "TPU"];
@@ -12,7 +13,7 @@ const MATERIALS_DEFAULT = ["PLA", "PETG", "ABS", "ASA", "TPU"];
 const BLANK_FORM = { barcode_value: "", brand: "", material: "PLA", color_name: "", color_hex: "", weight_grams: "", notes: "" };
 
 export default function MyBarcodesPage() {
-  const safeBack = useSafeBack();
+
   const [mappings, setMappings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [materials, setMaterials] = useState(MATERIALS_DEFAULT);
@@ -94,15 +95,10 @@ export default function MyBarcodesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={safeBack} className="p-2 -ml-2 rounded-full active:bg-muted">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <span className="font-bold text-foreground text-lg flex-1">My Barcodes</span>
-        <Button size="sm" onClick={openNew} className="gap-1.5">
-          <Plus className="w-4 h-4" /> Add
-        </Button>
-      </div>
+      <SubPageHeader
+        title="My Barcodes"
+        right={<Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="w-4 h-4" /> Add</Button>}
+      />
 
       <div className="p-4 space-y-4 pb-24">
         <Input
@@ -143,9 +139,7 @@ export default function MyBarcodesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block">Material</Label>
-                <select value={form.material} onChange={e => set("material", e.target.value)} className="h-10 w-full bg-muted border border-border text-foreground text-sm rounded-md px-2">
-                  {materials.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
+                <NativeSelect value={form.material} onChange={v => set("material", v)} options={materials} />
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block">Color name</Label>
