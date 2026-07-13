@@ -33,10 +33,10 @@ export default function SpoolCard({ spool }) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-semibold text-foreground text-base leading-tight truncate">{spool.brand}</p>
+              <p className="font-semibold text-foreground text-base leading-tight truncate">{spool.color_name}</p>
               <span className={`text-xs font-semibold ${status.color}`}>{status.label}</span>
             </div>
-            <p className="text-sm text-muted-foreground truncate">{spool.color_name}</p>
+            <p className="text-sm text-muted-foreground truncate">{spool.brand}</p>
 
             <div className="flex items-center gap-2 mt-1.5">
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${matClass}`}>{spool.material}</span>
@@ -55,8 +55,8 @@ export default function SpoolCard({ spool }) {
           </div>
           <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${status.bar}`}
-              style={{ width: `${pct}%` }}
+              className="h-full rounded-full transition-all"
+              style={{ width: `${pct}%`, backgroundColor: spool.color_hex || "#888" }}
             />
           </div>
         </div>
