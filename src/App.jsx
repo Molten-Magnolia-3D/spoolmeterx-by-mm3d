@@ -19,6 +19,7 @@ import RedeemCodePage from '@/pages/RedeemCodePage';
 import MyBarcodesPage from '@/pages/MyBarcodesPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
+import LandingPage from '@/pages/LandingPage';
 import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -58,6 +59,7 @@ const AuthenticatedApp = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/about" element={<LandingPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>

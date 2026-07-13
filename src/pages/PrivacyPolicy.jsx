@@ -31,22 +31,27 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2 className="font-semibold text-base mb-2">6. Third-Party Services</h2>
+          <h2 className="font-semibold text-base mb-2">6. Google Sign-In</h2>
+          <p>SpoolmeterX offers Google Sign-In as an authentication option. When you use Google Sign-In, we request access only to your basic profile information (your name and email address) for the sole purpose of creating and identifying your account. We do not access your Google Drive, Gmail, Google Calendar, or any other Google services or data. Your Google account information is never shared with third parties or used for advertising purposes. You may revoke SpoolmeterX's access to your Google account at any time via your <a href="https://myaccount.google.com/permissions" className="underline underline-offset-2 text-primary" target="_blank" rel="noopener noreferrer">Google Account settings</a>.</p>
+        </section>
+
+        <section>
+          <h2 className="font-semibold text-base mb-2">7. Third-Party Services</h2>
           <p>We may use third-party analytics or infrastructure services. These services are bound by their own privacy policies and are only used to maintain and improve app reliability.</p>
         </section>
 
         <section>
-          <h2 className="font-semibold text-base mb-2">7. Children's Privacy</h2>
+          <h2 className="font-semibold text-base mb-2">8. Children's Privacy</h2>
           <p>SpoolmeterX is not directed at children under 13. We do not knowingly collect personal information from children.</p>
         </section>
 
         <section>
-          <h2 className="font-semibold text-base mb-2">8. Changes to This Policy</h2>
+          <h2 className="font-semibold text-base mb-2">9. Changes to This Policy</h2>
           <p>We may update this Privacy Policy from time to time. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
         </section>
 
         <section>
-          <h2 className="font-semibold text-base mb-2">9. Contact</h2>
+          <h2 className="font-semibold text-base mb-2">10. Contact</h2>
           <p>For privacy-related questions, please contact MM3D through the feedback form within the app.</p>
         </section>
       </div>
