@@ -14,6 +14,7 @@ import SpoolDetail from '@/pages/SpoolDetail';
 import QuickJobsPage from '@/pages/QuickJobsPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 import PricingPage from '@/pages/PricingPage';
 import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import AdminPage from '@/pages/AdminPage';
@@ -43,6 +44,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/scan" element={<ScanPage />} />
