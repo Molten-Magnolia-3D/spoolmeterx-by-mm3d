@@ -1,9 +1,9 @@
 import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function LowStockWidget({ spools }) {
-  const critical = spools.filter(s => !s.is_empty && s.current_weight_grams < 100);
-  const low = spools.filter(s => !s.is_empty && s.current_weight_grams >= 100 && s.current_weight_grams < 300);
+export default function LowStockWidget({ spools, criticalThreshold = 100, lowThreshold = 300 }) {
+  const critical = spools.filter(s => !s.is_empty && s.current_weight_grams < criticalThreshold);
+  const low = spools.filter(s => !s.is_empty && s.current_weight_grams >= criticalThreshold && s.current_weight_grams < lowThreshold);
 
   if (critical.length === 0 && low.length === 0) return null;
 

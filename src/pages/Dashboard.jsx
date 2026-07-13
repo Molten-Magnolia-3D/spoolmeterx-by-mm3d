@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { Plus, ScanBarcode, Package, Zap } from "lucide-react";
+import { Plus, ScanBarcode, Package, Zap, Settings, X } from "lucide-react";
 import SpoolGroupCard from "@/components/SpoolGroupCard";
 import LowStockWidget from "@/components/LowStockWidget";
+import { Input } from "@/components/ui/input";
 
 const MATERIALS = ["All", "PLA", "PETG", "ABS", "ASA", "TPU"];
 
@@ -12,6 +13,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
   const [showEmpty, setShowEmpty] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [criticalThreshold, setCriticalThreshold] = useState(() => parseInt(localStorage.getItem("ff_critical") || "100"));
+  const [lowThreshold, setLowThreshold] = useState(() => parseInt(localStorage.getItem("ff_low") || "300"));
 
   useEffect(() => {
     load();
@@ -52,6 +56,9 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">{active.length} active spools</p>
           </div>
           <div className="flex gap-2">
+            <button onClick={() => setShowSettings(v => !v)} className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground active:opacity-70">
+              <Settings className="w-4 h-4" />
+            </button>
             <Link
               to="/quick-jobs"
               className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
@@ -77,9 +84,37 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="border-b border-border bg-card px-4 py-4 space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-semibold text-foreground">Low Stock Thresholds</span>
+            <button onClick={() => setShowSettings(false)} className="p-1 rounded active:bg-muted"><X className="w-4 h-4 text-muted-foreground" /></button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-red-400 font-medium mb-1 block">Critical below (g)</label>
+              <Input
+                type="number" min="0" value={criticalThreshold}
+                onChange={e => { const v = parseInt(e.target.value) || 0; setCriticalThreshold(v); localStorage.setItem("ff_critical", v); }}
+                className="h-10 bg-muted border-border text-foreground"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-yellow-400 font-medium mb-1 block">Low below (g)</label>
+              <Input
+                type="number" min="0" value={lowThreshold}
+                onChange={e => { const v = parseInt(e.target.value) || 0; setLowThreshold(v); localStorage.setItem("ff_low", v); }}
+                className="h-10 bg-muted border-border text-foreground"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="px-4 py-4 space-y-4">
         {/* Low Stock Widget */}
-        {!loading && <LowStockWidget spools={spools} />}
+        {!loading && <LowStockWidget spools={spools} criticalThreshold={criticalThreshold} lowThreshold={lowThreshold} />}
 
         {/* Material Filter */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
