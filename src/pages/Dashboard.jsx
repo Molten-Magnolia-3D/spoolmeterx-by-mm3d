@@ -283,7 +283,24 @@ export default function Dashboard() {
             </label>
             {importStatus === "done" && <p className="text-xs text-green-400">{importMessage}</p>}
             {importStatus === "error" && <p className="text-xs text-red-400">{importMessage}</p>}
-            <p className="text-xs text-muted-foreground/60">CSV must include columns: brand, material, color_name, starting_weight_grams, current_weight_grams. Exported CSVs work directly.</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const header = "brand,material,color_name,color_hex,starting_weight_grams,current_weight_grams,purchase_price_per_kg,printer_slot,notes,date_opened";
+                const example = "Bambu Lab,PLA,Matte Black,#222222,1000,950,19.99,Slot 1,Example spool,2026-01-01";
+                const blob = new Blob([header + "\n" + example], { type: "text/csv" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "filament_template.csv";
+                a.click();
+              }}
+              className="w-full gap-2 border-border text-foreground"
+            >
+              <Download className="w-4 h-4" />
+              Download CSV Template
+            </Button>
+            <p className="text-xs text-muted-foreground/60">Required: brand, material, color_name, starting_weight_grams, current_weight_grams. Material must be one of: PLA, PETG, ABS, ASA, TPU.</p>
           </div>
         </div>
       )}
