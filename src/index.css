@@ -86,6 +86,17 @@
   }
 }
 
+/* Android / PWA safe area support */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 #html5-qr-code-scanner-container {
   border: none !important;
 }

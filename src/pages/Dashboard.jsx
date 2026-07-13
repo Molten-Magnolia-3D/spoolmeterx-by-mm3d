@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { exportSpoolsCsv } from "@/lib/exportCsv";
 import { parseCsv } from "@/lib/importCsv";
 import FeedbackForm from "@/components/FeedbackForm";
+import DeleteAccountDialog from "@/components/DeleteAccountDialog";
 
 const MATERIALS = ["All", "PLA", "PETG", "ABS", "ASA", "TPU"];
 const SORT_OPTIONS = [
@@ -45,6 +46,7 @@ export default function Dashboard() {
   const [importMessage, setImportMessage] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const { plan, spoolLimit, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
@@ -337,8 +339,8 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Sign out */}
-          <div className="border-t border-border pt-4">
+          {/* Sign out + Delete account */}
+          <div className="border-t border-border pt-4 space-y-2">
             <Button
               variant="outline"
               size="sm"
@@ -347,6 +349,15 @@ export default function Dashboard() {
             >
               <LogOut className="w-4 h-4" />
               Sign Out
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeleteAccount(true)}
+              className="w-full gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Account
             </Button>
           </div>
 
@@ -485,6 +496,11 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Delete account dialog */}
+      {showDeleteAccount && (
+        <DeleteAccountDialog onClose={() => setShowDeleteAccount(false)} />
+      )}
 
       {/* Quick weight log sheet */}
       {quickLogSpool && (
