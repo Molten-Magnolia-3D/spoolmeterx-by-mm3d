@@ -14,6 +14,8 @@ import SpoolDetail from '@/pages/SpoolDetail';
 import QuickJobsPage from '@/pages/QuickJobsPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
+import PricingPage from '@/pages/PricingPage';
+import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import { Navigate } from 'react-router-dom';
 
 const AuthenticatedApp = () => {
@@ -45,6 +47,8 @@ const AuthenticatedApp = () => {
         <Route path="/add" element={<AddSpoolPage />} />
         <Route path="/spool/:id" element={<SpoolDetail />} />
         <Route path="/quick-jobs" element={<QuickJobsPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/upgrade-success" element={<UpgradeSuccess />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

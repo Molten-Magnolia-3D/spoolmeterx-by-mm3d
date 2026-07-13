@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   Plus, ScanBarcode, Package, Zap, Settings, X,
   CheckSquare, Square, Copy, Trash2, Search, ArrowUpDown, Download, Bell
@@ -40,6 +41,10 @@ export default function Dashboard() {
   const [quickLogSpool, setQuickLogSpool] = useState(null);
   const [importStatus, setImportStatus] = useState(null); // null | "importing" | "done" | "error"
   const [importMessage, setImportMessage] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
+  const { plan, spoolLimit } = useSubscription(currentUser);
 
   useEffect(() => {
     load();
@@ -178,16 +183,40 @@ export default function Dashboard() {
               <Link to="/quick-jobs" className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
                 <Zap className="w-4 h-4" />Jobs
               </Link>
-              <Link to="/scan" className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                <ScanBarcode className="w-4 h-4" />Scan
-              </Link>
-              <Link to="/add" className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                <Plus className="w-4 h-4" />Add
-              </Link>
+              {active.length >= spoolLimit ? (
+                <Link to="/pricing" className="flex items-center gap-1.5 bg-primary/40 text-primary-foreground/70 px-3 py-2 rounded-lg text-sm font-semibold">
+                  <ScanBarcode className="w-4 h-4" />Scan
+                </Link>
+              ) : (
+                <Link to="/scan" className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
+                  <ScanBarcode className="w-4 h-4" />Scan
+                </Link>
+              )}
+              {active.length >= spoolLimit ? (
+                <Link to="/pricing" className="flex items-center gap-1.5 bg-secondary/40 text-secondary-foreground/70 px-3 py-2 rounded-lg text-sm font-semibold">
+                  <Plus className="w-4 h-4" />Add
+                </Link>
+              ) : (
+                <Link to="/add" className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80">
+                  <Plus className="w-4 h-4" />Add
+                </Link>
+              )}
             </>}
           </div>
         </div>
       </div>
+
+      {/* Upgrade Banner */}
+      {plan === "free" && active.length >= spoolLimit * 0.8 && (
+        <div className={`px-4 py-2 text-sm flex items-center justify-between gap-2 ${active.length >= spoolLimit ? "bg-red-950/60 border-b border-red-800/50 text-red-300" : "bg-yellow-950/60 border-b border-yellow-800/50 text-yellow-300"}`}>
+          <span>
+            {active.length >= spoolLimit
+              ? `🚫 Spool limit reached (${spoolLimit}). Upgrade to add more.`
+              : `⚠️ ${active.length}/${spoolLimit} spools used — upgrade for more.`}
+          </span>
+          <Link to="/pricing" className="font-semibold underline underline-offset-2 flex-shrink-0">Upgrade</Link>
+        </div>
+      )}
 
       {/* Settings Panel */}
       {showSettings && (
@@ -260,6 +289,17 @@ export default function Dashboard() {
                 />
                 <p className="text-xs text-muted-foreground/60">Alerts are sent when you open the app and critical spools are detected.</p>
               </div>
+            )}
+          </div>
+
+          {/* Plan info */}
+          <div className="border-t border-border pt-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-foreground font-medium capitalize">{plan} Plan</p>
+              <p className="text-xs text-muted-foreground">{spoolLimit >= 999999 ? "Unlimited" : spoolLimit} spools</p>
+            </div>
+            {plan === "free" && (
+              <Link to="/pricing" className="text-sm text-primary font-semibold hover:underline">Upgrade →</Link>
             )}
           </div>
 

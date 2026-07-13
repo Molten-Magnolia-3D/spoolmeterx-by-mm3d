@@ -1,0 +1,47 @@
+{
+  "name": "UserSubscription",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "hobby",
+        "pro",
+        "lifetime"
+      ],
+      "default": "free"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "canceled",
+        "ended"
+      ],
+      "default": "pending"
+    },
+    "checkout_id": {
+      "type": "string"
+    },
+    "subscription_id": {
+      "type": "string"
+    },
+    "spool_limit": {
+      "type": "number",
+      "default": 20
+    }
+  },
+  "required": [
+    "user_email",
+    "plan",
+    "status"
+  ]
+}
