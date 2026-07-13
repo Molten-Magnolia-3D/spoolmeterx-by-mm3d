@@ -383,6 +383,12 @@ export default function Dashboard({ openSettings }) {
             )}
           </div>
 
+          {/* Legal links */}
+          <div className="border-t border-border pt-4 flex gap-4">
+            <Link to="/privacy" onClick={() => setShowSettings(false)} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">Privacy Policy</Link>
+            <Link to="/terms" onClick={() => setShowSettings(false)} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">Terms of Service</Link>
+          </div>
+
           {/* Feedback */}
           <div className="border-t border-border pt-4">
             <div className="flex items-center justify-between mb-3">
