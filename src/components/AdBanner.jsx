@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 // Replace these with your real values after Google AdSense approves your account:
 // 1. Set ADSENSE_CLIENT to your Publisher ID (e.g. "ca-pub-1234567890123456")
 // 2. Set ADSENSE_SLOT to your Ad Unit slot ID (e.g. "1234567890")
-const ADSENSE_CLIENT = "ca-pub-XXXXXXXXXXXXXXXXX"; // <-- replace this
+const ADSENSE_CLIENT = "ca-pub-5193605333784435";
 const ADSENSE_SLOT = "XXXXXXXXXX"; // <-- replace this
 const IS_CONFIGURED = !ADSENSE_CLIENT.includes("XXXXXXXXX");
 
