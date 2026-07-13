@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import SpoolForm from "@/components/SpoolForm";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Camera, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function ScanPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState("scanning"); // scanning | found | manual
+  const [step, setStep] = useState("choose"); // choose | scanning | scanner | found | manual
+  const scannerInputRef = useRef(null);
   const [scannedCode, setScannedCode] = useState(null);
   const [foundMapping, setFoundMapping] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -80,6 +81,85 @@ export default function ScanPage() {
       setLoading(false);
     }
   };
+
+  if (step === "choose") {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="p-2 -ml-2 rounded-full active:bg-muted">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <span className="font-semibold text-foreground">Scan Spool</span>
+        </div>
+        <div className="p-6 space-y-4 pt-10">
+          <p className="text-center text-muted-foreground text-sm mb-6">How would you like to scan?</p>
+
+          <button
+            onClick={() => setStep("scanning")}
+            className="w-full flex items-center gap-4 bg-card border border-border rounded-xl p-5 active:opacity-80 text-left"
+          >
+            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Camera className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">Camera Scan</p>
+              <p className="text-sm text-muted-foreground">Use your phone's camera to scan a barcode</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setStep("scanner")}
+            className="w-full flex items-center gap-4 bg-card border border-border rounded-xl p-5 active:opacity-80 text-left"
+          >
+            <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+              <ScanBarcode className="w-6 h-6 text-yellow-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">Barcode Scanner</p>
+              <p className="text-sm text-muted-foreground">Use a USB or Bluetooth barcode scanner gun</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "scanner") {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+          <button onClick={() => setStep("choose")} className="p-2 -ml-2 rounded-full active:bg-muted">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <span className="font-semibold text-foreground">Barcode Scanner</span>
+        </div>
+        <div className="p-6 flex flex-col items-center gap-6 pt-10">
+          <div className="w-20 h-20 rounded-full bg-yellow-500/20 flex items-center justify-center">
+            <ScanBarcode className="w-10 h-10 text-yellow-400" />
+          </div>
+          <div className="text-center">
+            <p className="font-semibold text-foreground mb-1">Ready to scan</p>
+            <p className="text-sm text-muted-foreground">Click the field below, then scan a barcode with your scanner gun</p>
+          </div>
+          <div className="w-full flex gap-2">
+            <Input
+              ref={scannerInputRef}
+              autoFocus
+              value={manualCode}
+              onChange={e => setManualCode(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { handleManualLookup(); setManualCode(""); } }}
+              placeholder="Waiting for scan…"
+              className="h-14 bg-muted border-border text-foreground font-mono text-lg text-center"
+            />
+            <Button onClick={() => { handleManualLookup(); setManualCode(""); }} className="h-14 px-5 bg-primary text-primary-foreground">
+              Go
+            </Button>
+          </div>
+          {loading && <p className="text-sm text-muted-foreground">Looking up barcode…</p>}
+        </div>
+      </div>
+    );
+  }
 
   if (step === "scanning") {
     return (
