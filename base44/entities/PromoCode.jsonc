@@ -1,0 +1,51 @@
+{
+  "name": "PromoCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "hobby",
+        "pro",
+        "lifetime"
+      ],
+      "default": "pro"
+    },
+    "duration_days": {
+      "type": "number",
+      "default": 30
+    },
+    "spool_limit": {
+      "type": "number",
+      "default": 999999
+    },
+    "max_uses": {
+      "type": "number",
+      "default": 1
+    },
+    "uses": {
+      "type": "number",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "code",
+    "plan",
+    "duration_days"
+  ]
+}

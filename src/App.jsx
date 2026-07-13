@@ -16,6 +16,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
 import PricingPage from '@/pages/PricingPage';
 import UpgradeSuccess from '@/pages/UpgradeSuccess';
+import AdminPage from '@/pages/AdminPage';
+import RedeemCodePage from '@/pages/RedeemCodePage';
 import { Navigate } from 'react-router-dom';
 
 const AuthenticatedApp = () => {
@@ -49,6 +51,8 @@ const AuthenticatedApp = () => {
         <Route path="/quick-jobs" element={<QuickJobsPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/upgrade-success" element={<UpgradeSuccess />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/redeem" element={<RedeemCodePage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

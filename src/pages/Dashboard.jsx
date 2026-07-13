@@ -170,14 +170,14 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pt-3 pb-2">
+        {/* Title row */}
+        <div className="flex items-center justify-center mb-2">
+          <h1 className="text-lg font-bold text-foreground font-heading">SpoolmeterX <span className="text-muted-foreground font-normal text-sm">by MM3D</span></h1>
+        </div>
+        {/* Actions row */}
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">{active.length} active spools</p>
-          </div>
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <h1 className="text-lg font-bold text-foreground font-heading">SpoolmeterX <span className="text-muted-foreground font-normal text-sm">by MM3D</span></h1>
-          </div>
+          <p className="text-xs text-muted-foreground">{active.length} active spools</p>
           <div className="flex gap-2">
             <button onClick={() => setShowSettings(v => !v)} className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground active:opacity-70">
               <Settings className="w-4 h-4" />
@@ -317,6 +317,22 @@ export default function Dashboard() {
             </div>
             {plan === "free" && (
               <Link to="/pricing" className="text-sm text-primary font-semibold hover:underline">Upgrade →</Link>
+            )}
+          </div>
+
+          {/* Quick links */}
+          <div className="border-t border-border pt-4 space-y-2">
+            <Link to="/redeem" onClick={() => setShowSettings(false)}>
+              <Button variant="outline" size="sm" className="w-full gap-2 border-border text-foreground">
+                🎟️ Redeem a Promo / Trial Code
+              </Button>
+            </Link>
+            {currentUser?.role === "admin" && (
+              <Link to="/admin" onClick={() => setShowSettings(false)}>
+                <Button variant="outline" size="sm" className="w-full gap-2 border-border text-foreground">
+                  🛠️ Admin Panel
+                </Button>
+              </Link>
             )}
           </div>
 
