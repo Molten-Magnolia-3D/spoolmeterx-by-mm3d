@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { Plus, ScanBarcode, Package, Zap, Settings, X } from "lucide-react";
+import { Plus, ScanBarcode, Package, Zap, Settings, X, CheckSquare, Square, Copy, Trash2 } from "lucide-react";
 import SpoolGroupCard from "@/components/SpoolGroupCard";
 import LowStockWidget from "@/components/LowStockWidget";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const MATERIALS = ["All", "PLA", "PETG", "ABS", "ASA", "TPU"];
 
@@ -17,6 +18,9 @@ export default function Dashboard() {
   const [criticalThreshold, setCriticalThreshold] = useState(() => parseInt(localStorage.getItem("ff_critical") || "100"));
   const [lowThreshold, setLowThreshold] = useState(() => parseInt(localStorage.getItem("ff_low") || "300"));
   const [groupedAlerts, setGroupedAlerts] = useState(() => localStorage.getItem("ff_grouped_alerts") === "true");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   useEffect(() => {
     load();
@@ -47,6 +51,57 @@ export default function Dashboard() {
 
   const active = spools.filter(s => !s.is_empty);
 
+  const allFilteredIds = filtered.map(s => s.id);
+  const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.has(id));
+
+  const toggleSelectMode = () => {
+    setSelectMode(v => !v);
+    setSelectedIds(new Set());
+  };
+
+  const handleToggleSelect = (ids, select) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      ids.forEach(id => select ? next.add(id) : next.delete(id));
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allFilteredIds));
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    const toDupe = spools.filter(s => selectedIds.has(s.id));
+    const copies = toDupe.map(({ id, created_date, updated_date, created_by_id, ...rest }) => ({
+      ...rest,
+      current_weight_grams: rest.starting_weight_grams,
+      date_opened: new Date().toISOString().split("T")[0],
+    }));
+    await base44.entities.Spool.bulkCreate(copies);
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    setBulkLoading(false);
+    await load();
+  };
+
+  const handleDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Delete ${selectedIds.size} spool${selectedIds.size !== 1 ? "s" : ""}? This cannot be undone.`)) return;
+    setBulkLoading(true);
+    await Promise.all([...selectedIds].map(id => base44.entities.Spool.delete(id)));
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    setBulkLoading(false);
+    await load();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -60,27 +115,35 @@ export default function Dashboard() {
             <button onClick={() => setShowSettings(v => !v)} className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground active:opacity-70">
               <Settings className="w-4 h-4" />
             </button>
-            <Link
-              to="/quick-jobs"
-              className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
+            <button
+              onClick={toggleSelectMode}
+              className={`flex items-center justify-center w-9 h-9 rounded-lg active:opacity-70 ${selectMode ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
             >
-              <Zap className="w-4 h-4" />
-              Jobs
-            </Link>
-            <Link
-              to="/scan"
-              className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
-            >
-              <ScanBarcode className="w-4 h-4" />
-              Scan
-            </Link>
-            <Link
-              to="/add"
-              className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
-            >
-              <Plus className="w-4 h-4" />
-              Add
-            </Link>
+              <CheckSquare className="w-4 h-4" />
+            </button>
+            {!selectMode && <>
+              <Link
+                to="/quick-jobs"
+                className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
+              >
+                <Zap className="w-4 h-4" />
+                Jobs
+              </Link>
+              <Link
+                to="/scan"
+                className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
+              >
+                <ScanBarcode className="w-4 h-4" />
+                Scan
+              </Link>
+              <Link
+                to="/add"
+                className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-2 rounded-lg text-sm font-semibold active:opacity-80"
+              >
+                <Plus className="w-4 h-4" />
+                Add
+              </Link>
+            </>}
           </div>
         </div>
       </div>
@@ -122,6 +185,39 @@ export default function Dashboard() {
             >
               <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${groupedAlerts ? "left-5" : "left-0.5"}`} />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Action Bar */}
+      {selectMode && (
+        <div className="border-b border-border bg-card px-4 py-3 flex items-center gap-3">
+          <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm text-muted-foreground active:opacity-70">
+            {allSelected ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+            <span>{allSelected ? "Deselect all" : "Select all"}</span>
+          </button>
+          <span className="text-sm text-muted-foreground ml-1">{selectedIds.size} selected</span>
+          <div className="ml-auto flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDuplicate}
+              disabled={selectedIds.size === 0 || bulkLoading}
+              className="gap-1.5 border-border text-foreground"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Duplicate
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={selectedIds.size === 0 || bulkLoading}
+              className="gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete
+            </Button>
           </div>
         </div>
       )}
@@ -171,7 +267,15 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="space-y-3">
-            {groups.map((group, i) => <SpoolGroupCard key={i} spools={group} />)}
+            {groups.map((group, i) => (
+              <SpoolGroupCard
+                key={i}
+                spools={group}
+                selectMode={selectMode}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
+              />
+            ))}
           </div>
         )}
       </div>
