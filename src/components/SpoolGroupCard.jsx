@@ -1,121 +1,115 @@
 import { Link } from "react-router-dom";
-import { SpoolSwatch, swatchStyle } from "@/components/SpoolSwatch";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckSquare, Square, ChevronRight, Zap } from "lucide-react";
+import { swatchStyle } from "@/components/SpoolSwatch";
 
-const MATERIAL_COLORS = {
-  PLA: "bg-blue-500/20 text-blue-300",
-  PETG: "bg-purple-500/20 text-purple-300",
-  ABS: "bg-orange-500/20 text-orange-300",
-  ASA: "bg-yellow-500/20 text-yellow-300",
-  TPU: "bg-green-500/20 text-green-300",
+const MATERIAL_STYLES = {
+  PLA:  { bg: "bg-blue-500/10",   text: "text-blue-400"   },
+  PETG: { bg: "bg-green-500/10",  text: "text-green-400"  },
+  ABS:  { bg: "bg-orange-500/10", text: "text-orange-400" },
+  ASA:  { bg: "bg-purple-500/10", text: "text-purple-400" },
+  TPU:  { bg: "bg-pink-500/10",   text: "text-pink-400"   },
 };
 
-function getStatus(current, starting) {
-  if (current <= 0) return { label: "Empty", color: "text-gray-400" };
-  if (current < 100) return { label: "Critical", color: "text-red-400" };
-  if (current < 300) return { label: "Low", color: "text-yellow-400" };
-  return { label: "Full", color: "text-green-400" };
+function getStatus(grams, starting) {
+  if (!grams || grams <= 0) return { label: "Empty",    color: "text-muted-foreground" };
+  const pct = grams / (starting || 1000);
+  if (pct < 0.1)  return { label: "Critical", color: "text-red-400"    };
+  if (pct < 0.3)  return { label: "Low",      color: "text-yellow-400" };
+  return               { label: "Good",     color: "text-green-400"  };
 }
 
-export default function SpoolGroupCard({ spools, selectMode = false, selectedIds = new Set(), onToggleSelect }) {
-  const rep = spools[0];
-  const count = spools.length;
-  const totalCurrent = spools.reduce((sum, s) => sum + s.current_weight_grams, 0);
-  const totalStarting = spools.reduce((sum, s) => sum + s.starting_weight_grams, 0);
-  const pct = Math.max(0, Math.min(100, (totalCurrent / totalStarting) * 100));
-  const status = getStatus(totalCurrent, totalStarting);
-  const matClass = MATERIAL_COLORS[rep.material] || "bg-gray-500/20 text-gray-300";
-  const perSpoolGrams = Math.round(rep.starting_weight_grams);
+export default function SpoolGroupCard({ spools, selectMode, selectedIds, onToggleSelect, onLongPress }) {
+  const sample = spools[0];
+  const totalGrams = spools.reduce((s, sp) => s + (sp.current_weight_grams || 0), 0);
+  const totalStarting = spools.reduce((s, sp) => s + (sp.starting_weight_grams || 1000), 0);
+  const pct = Math.min(100, Math.round((totalGrams / totalStarting) * 100));
+  const status = getStatus(totalGrams, totalStarting);
+  const mat = MATERIAL_STYLES[sample.material] || { bg: "bg-muted", text: "text-muted-foreground" };
 
-  // In select mode, all spools in this group are selected if every id is in selectedIds
-  const groupSelected = spools.every(s => selectedIds.has(s.id));
-  const groupPartial = !groupSelected && spools.some(s => selectedIds.has(s.id));
+  const allGroupIds = spools.map(s => s.id);
+  const groupSelected = selectMode && allGroupIds.every(id => selectedIds?.has(id));
 
-  const handleCardClick = (e) => {
-    if (selectMode) {
-      e.preventDefault();
-      onToggleSelect(spools.map(s => s.id), !groupSelected);
-    }
+  const handleSelect = () => {
+    if (!selectMode) return;
+    onToggleSelect(allGroupIds, !groupSelected);
   };
 
+  // Long-press detection
+  let pressTimer = null;
+  const onPointerDown = () => {
+    if (selectMode) return;
+    pressTimer = setTimeout(() => {
+      if (onLongPress) onLongPress(sample);
+    }, 500);
+  };
+  const onPointerUp = () => clearTimeout(pressTimer);
+
   const cardContent = (
-    <div
-      className={`bg-card border rounded-xl p-4 active:scale-[0.98] transition-transform ${
-        groupSelected ? "border-primary" : groupPartial ? "border-primary/50" : "border-border"
-      }`}
-      onClick={handleCardClick}
-    >
-      <div className="flex items-start gap-3">
-        {/* Select indicator */}
+    <div className={`bg-card border rounded-xl p-4 transition-colors ${groupSelected ? "border-primary bg-primary/5" : "border-border"}`}>
+      <div className="flex items-center gap-3">
         {selectMode && (
-          <div className="flex-shrink-0 mt-0.5">
-            {groupSelected ? (
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-            ) : groupPartial ? (
-              <CheckCircle2 className="w-5 h-5 text-primary/50" />
-            ) : (
-              <Circle className="w-5 h-5 text-muted-foreground" />
-            )}
+          <div className="flex-shrink-0">
+            {groupSelected
+              ? <CheckSquare className="w-5 h-5 text-primary" />
+              : <Square className="w-5 h-5 text-muted-foreground" />}
           </div>
         )}
 
-        {/* Color Swatch */}
-        <div className="relative flex-shrink-0">
-          <SpoolSwatch spool={rep} className="w-12 h-12 rounded-lg border border-white/10 shadow-inner" />
-          {count > 1 && (
-            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center leading-none">
-              {count}
-            </span>
-          )}
-        </div>
+        {/* Color swatch */}
+        <div
+          className="w-10 h-10 rounded-lg border border-white/10 flex-shrink-0"
+          style={swatchStyle(sample)}
+        />
 
+        {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-semibold text-foreground text-base leading-tight truncate">{rep.color_name}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-foreground truncate">{sample.brand} {sample.color_name}</p>
+            {spools.length > 1 && (
+              <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full flex-shrink-0">×{spools.length}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${mat.bg} ${mat.text}`}>{sample.material}</span>
             <span className={`text-xs font-semibold ${status.color}`}>{status.label}</span>
           </div>
-          <p className="text-sm text-muted-foreground truncate">{rep.brand}</p>
+        </div>
 
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${matClass}`}>{rep.material}</span>
-            {count > 1 && (
-              <span className="text-xs text-muted-foreground">{count} spools · {perSpoolGrams}g ea</span>
-            )}
-            {count === 1 && rep.printer_slot && (
-              <span className="text-xs text-muted-foreground">Slot: {rep.printer_slot}</span>
-            )}
+        {/* Weight + arrow */}
+        <div className="text-right flex-shrink-0 flex items-center gap-2">
+          <div>
+            <p className="text-sm font-bold text-foreground">{Math.round(totalGrams)}g</p>
+            <p className="text-xs text-muted-foreground">{pct}%</p>
           </div>
+          {!selectMode && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
         </div>
       </div>
 
-      {/* Weight bar */}
-      <div className="mt-3">
-        <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-          {count > 1 ? (
-            <>
-              <span>{Math.round(totalCurrent)}g remaining across {count} spools</span>
-              <span>{Math.round(totalStarting)}g total</span>
-            </>
-          ) : (
-            <>
-              <span>{Math.round(totalCurrent)}g remaining</span>
-              <span>{Math.round(totalStarting)}g start</span>
-            </>
-          )}
-        </div>
-        <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${pct}%`, ...swatchStyle(rep) }}
-          />
-        </div>
+      {/* Progress bar */}
+      <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${status.label === "Critical" ? "bg-red-500" : status.label === "Low" ? "bg-yellow-500" : "bg-green-500"}`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
+
+      {!selectMode && onLongPress && (
+        <p className="text-xs text-muted-foreground mt-2 text-center opacity-50">Hold to quick-log</p>
+      )}
     </div>
   );
 
   if (selectMode) {
-    return <div className="cursor-pointer">{cardContent}</div>;
+    return <div onClick={handleSelect} className="cursor-pointer">{cardContent}</div>;
   }
 
-  return <Link to={`/spool/${rep.id}`} className="block">{cardContent}</Link>;
+  return (
+    <div
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+    >
+      <Link to={`/spool/${sample.id}`}>{cardContent}</Link>
+    </div>
+  );
 }
