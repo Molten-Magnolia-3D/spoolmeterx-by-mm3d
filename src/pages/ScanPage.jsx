@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import SpoolForm from "@/components/SpoolForm";
 import { ArrowLeft, CheckCircle, Camera, ScanBarcode, Plus, Minus, Trash2, PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export default function ScanPage() {
   const navigate = useNavigate();
@@ -16,7 +17,17 @@ export default function ScanPage() {
   const [manualCode, setManualCode] = useState("");
   const [scanQueue, setScanQueue] = useState([]); // [{ code, mapping, quantity }]
   const [originStep, setOriginStep] = useState("scanning"); // to know where to go back after found/manual
+  const [limitError, setLimitError] = useState(null);
+  const [activeCount, setActiveCount] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
   const scannerInputRef = useRef(null);
+
+  useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
+  const { spoolLimit } = useSubscription(currentUser);
+
+  useEffect(() => {
+    base44.entities.Spool.filter({ is_empty: false }).then(s => setActiveCount(s.length)).catch(() => {});
+  }, []);
 
   const handleScan = async (code) => {
     // Don't re-add same code if already in queue
@@ -95,26 +106,39 @@ export default function ScanPage() {
   };
 
   const handleCommitQueue = async () => {
+    setLimitError(null);
+    const remaining = spoolLimit - activeCount;
+    const spools = [];
+    for (const item of scanQueue) {
+      const m = item.mapping;
+      for (let i = 0; i < item.quantity; i++) {
+        spools.push({
+          brand: m.brand,
+          material: m.material,
+          color_name: m.color_name,
+          color_hex: m.color_hex,
+          starting_weight_grams: m.starting_weight_grams || m.weight_grams || 1000,
+          current_weight_grams: m.current_weight_grams || m.weight_grams || 1000,
+          barcode: item.code,
+          notes: m.notes,
+          date_opened: new Date().toISOString().split("T")[0],
+        });
+      }
+    }
+
+    if (remaining <= 0) {
+      setLimitError(`Spool limit reached (${spoolLimit}). Upgrade to add more.`);
+      return;
+    }
+
+    const toAdd = spools.slice(0, remaining);
+    if (toAdd.length < spools.length) {
+      setLimitError(`Only ${remaining} slot${remaining !== 1 ? "s" : ""} remaining — adding ${toAdd.length} of ${spools.length}.`);
+    }
+
     setLoading(true);
     try {
-      const spools = [];
-      for (const item of scanQueue) {
-        const m = item.mapping;
-        for (let i = 0; i < item.quantity; i++) {
-          spools.push({
-            brand: m.brand,
-            material: m.material,
-            color_name: m.color_name,
-            color_hex: m.color_hex,
-            starting_weight_grams: m.starting_weight_grams || m.weight_grams || 1000,
-            current_weight_grams: m.current_weight_grams || m.weight_grams || 1000,
-            barcode: item.code,
-            notes: m.notes,
-            date_opened: new Date().toISOString().split("T")[0],
-          });
-        }
-      }
-      await base44.entities.Spool.bulkCreate(spools);
+      await base44.entities.Spool.bulkCreate(toAdd);
       navigate("/");
     } finally {
       setLoading(false);
@@ -247,6 +271,12 @@ export default function ScanPage() {
           </button>
           <span className="font-semibold text-foreground">Review Spools</span>
         </div>
+        {limitError && (
+          <div className="px-4 py-3 bg-red-950/60 border-b border-red-800/50 text-red-300 text-sm flex items-center justify-between gap-2">
+            <span>{limitError}</span>
+            <Link to="/pricing" className="font-semibold underline underline-offset-2 flex-shrink-0">Upgrade</Link>
+          </div>
+        )}
         <div className="p-4 space-y-3 pb-32">
           {scanQueue.map(item => (
             <div key={item.code} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">

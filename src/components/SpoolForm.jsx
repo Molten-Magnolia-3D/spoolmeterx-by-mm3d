@@ -22,7 +22,7 @@ const PRESET_COLORS = [
   { name: "Transparent", hex: "#c5e0f5" },
 ];
 
-export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loading, showQuantity = false }) {
+export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loading, showQuantity = false, maxQuantity = 50 }) {
   const [form, setForm] = useState({
     brand: "",
     material: "PLA",
@@ -206,7 +206,7 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
       {/* Optional fields */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label className="text-sm text-muted-foreground mb-1 block">Price per kg ($)</Label>
+          <Label className="text-sm text-muted-foreground mb-1 block">Price per kg ($) <span className="text-muted-foreground/50">(optional)</span></Label>
           <Input
             type="number"
             value={form.purchase_price_per_kg}
@@ -266,12 +266,12 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
             <Input
               type="number"
               value={form.quantity}
-              onChange={e => set("quantity", Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={e => set("quantity", Math.max(1, Math.min(maxQuantity, parseInt(e.target.value) || 1)))}
               min="1"
-              max="50"
+              max={maxQuantity}
               className="h-12 bg-muted border-border text-foreground text-center text-lg font-semibold"
             />
-            <button type="button" onClick={() => set("quantity", Math.min(50, (parseInt(form.quantity) || 1) + 1))} className="w-12 h-12 rounded-lg bg-muted border border-border text-xl font-bold text-foreground active:opacity-70">+</button>
+            <button type="button" onClick={() => set("quantity", Math.min(maxQuantity, (parseInt(form.quantity) || 1) + 1))} className="w-12 h-12 rounded-lg bg-muted border border-border text-xl font-bold text-foreground active:opacity-70">+</button>
           </div>
           {(parseInt(form.quantity) || 1) > 1 && (
             <p className="text-xs text-muted-foreground mt-1.5">{form.quantity} identical spools will be added to your inventory.</p>
