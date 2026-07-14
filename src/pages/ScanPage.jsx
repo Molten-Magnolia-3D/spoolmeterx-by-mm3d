@@ -20,6 +20,18 @@ export default function ScanPage() {
   const [originStep, setOriginStep] = useState("scanning"); // to know where to go back after found/manual
   const scannerInputRef = useRef(null);
 
+  // Reset to choose screen whenever the scan tab is re-entered
+  useEffect(() => {
+    const onReset = () => {
+      setStep("choose");
+      setScanQueue([]);
+      setScannedCode(null);
+      setFoundMapping(null);
+    };
+    window.addEventListener("scan-tab-reset", onReset);
+    return () => window.removeEventListener("scan-tab-reset", onReset);
+  }, []);
+
   const handleScan = async (code) => {
     // Don't re-add same code if already in queue
     if (scanQueue.some(i => i.code === code)) {
