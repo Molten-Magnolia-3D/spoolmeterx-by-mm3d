@@ -13,6 +13,12 @@
       "items": {
         "type": "object",
         "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "group_key": {
+            "type": "string"
+          },
           "spool_id": {
             "type": "string"
           },
@@ -20,6 +26,15 @@
             "type": "string"
           },
           "spool_color_hex": {
+            "type": "string"
+          },
+          "material": {
+            "type": "string"
+          },
+          "color_name": {
+            "type": "string"
+          },
+          "brand": {
             "type": "string"
           },
           "grams": {
