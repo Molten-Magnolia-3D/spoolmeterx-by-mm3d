@@ -200,8 +200,8 @@ export default function Dashboard() {
     >
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pt-3 pb-2">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-base font-bold text-foreground font-heading whitespace-nowrap">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <h1 className="text-base font-bold text-foreground font-heading truncate min-w-0">
             SpoolmeterX <span className="text-muted-foreground font-normal text-xs">by MM3D</span>
           </h1>
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -212,11 +212,11 @@ export default function Dashboard() {
               {selectMode ? <X className="w-4 h-4" /> : <CheckSquare className="w-4 h-4" />}
             </button>
             {!selectMode && <>
-              <Link to="/scan" className="flex items-center gap-1 bg-primary text-primary-foreground px-2.5 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                <ScanBarcode className="w-4 h-4" /><span className="hidden sm:inline">Scan</span>
+              <Link to="/scan" className="flex items-center justify-center w-9 h-9 bg-primary text-primary-foreground rounded-lg active:opacity-80" title="Scan">
+                <ScanBarcode className="w-4 h-4" />
               </Link>
-              <Link to="/add" className="flex items-center gap-1 bg-secondary text-secondary-foreground px-2.5 py-2 rounded-lg text-sm font-semibold active:opacity-80">
-                <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add</span>
+              <Link to="/add" className="flex items-center justify-center w-9 h-9 bg-secondary text-secondary-foreground rounded-lg active:opacity-80" title="Add">
+                <Plus className="w-4 h-4" />
               </Link>
             </>}
           </div>

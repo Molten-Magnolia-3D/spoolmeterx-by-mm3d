@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Layers, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// Build unique filament groups from spools (brand+material+color_name)
+// Build unique filament groups from spools (material+color_name+brand)
 function buildGroups(spools) {
   const map = {};
   for (const s of spools) {
@@ -26,21 +26,45 @@ function buildGroups(spools) {
   return Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
 }
 
+function spoolLabel(s) {
+  const weight = Math.round(s.current_weight_grams || 0);
+  return `${s.brand ? s.brand + " " : ""}${s.color_name} (${s.material}) — ${weight}g`;
+}
+
+const EMPTY_ROW = { mode: "group", group_key: "", spool_id: "", label: "", color_hex: "#888", material: "", color_name: "", brand: "", grams: "" };
+
 export default function QuickJobForm({ spools, initialData, onSave, onCancel }) {
   const [name, setName] = useState(initialData?.name || "");
   const [description, setDescription] = useState(initialData?.description || "");
 
+  const activeSpools = useMemo(() => spools.filter(s => !s.is_empty), [spools]);
   const groups = useMemo(() => buildGroups(spools), [spools]);
 
-  // Convert existing usages (which used spool_id) to group keys on load
   const [usages, setUsages] = useState(() => {
     if (initialData?.usages?.length > 0) {
       return initialData.usages.map(u => {
-        // Try to match back to a group
+        // Individual spool usage (has spool_id but no group_key)
+        if (u.spool_id && !u.group_key) {
+          const s = spools.find(sp => sp.id === u.spool_id);
+          return {
+            mode: "individual",
+            group_key: "",
+            spool_id: u.spool_id,
+            label: u.spool_label || s ? spoolLabel(s) : "",
+            color_hex: u.spool_color_hex || s?.color_hex || "#888",
+            material: u.material || s?.material || "",
+            color_name: u.color_name || s?.color_name || "",
+            brand: u.brand || s?.brand || "",
+            grams: u.grams || "",
+          };
+        }
+        // Group usage
         const grp = groups.find(g => g.key === u.group_key) ||
           groups.find(g => g.material === u.material && g.color_name === u.color_name);
         return {
+          mode: "group",
           group_key: u.group_key || grp?.key || "",
+          spool_id: "",
           label: u.spool_label || grp?.label || "",
           color_hex: u.spool_color_hex || grp?.color_hex || "#888",
           material: u.material || grp?.material || "",
@@ -50,56 +74,61 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
         };
       });
     }
-    return [{ group_key: "", label: "", color_hex: "#888", material: "", color_name: "", brand: "", grams: "" }];
+    return [{ ...EMPTY_ROW }];
   });
 
   const [saving, setSaving] = useState(false);
 
-  const setUsageGrams = (i, val) => {
-    setUsages(prev => prev.map((u, idx) => idx === i ? { ...u, grams: val } : u));
-  };
+  const updateRow = (i, patch) =>
+    setUsages(prev => prev.map((u, idx) => idx === i ? { ...u, ...patch } : u));
 
   const selectGroup = (i, key) => {
     const grp = groups.find(g => g.key === key);
-    if (!grp) return;
-    setUsages(prev => prev.map((u, idx) => idx === i ? {
-      ...u,
-      group_key: grp.key,
-      label: grp.label,
-      color_hex: grp.color_hex,
-      material: grp.material,
-      color_name: grp.color_name,
-      brand: grp.brand,
-    } : u));
+    if (!grp) { updateRow(i, { group_key: "", label: "", color_hex: "#888", material: "", color_name: "", brand: "" }); return; }
+    updateRow(i, { group_key: grp.key, spool_id: "", label: grp.label, color_hex: grp.color_hex, material: grp.material, color_name: grp.color_name, brand: grp.brand });
   };
 
-  const addRow = () => setUsages(prev => [
-    ...prev,
-    { group_key: "", label: "", color_hex: "#888", material: "", color_name: "", brand: "", grams: "" }
-  ]);
+  const selectSpool = (i, id) => {
+    const s = spools.find(sp => sp.id === id);
+    if (!s) { updateRow(i, { spool_id: "", label: "", color_hex: "#888", material: "", color_name: "", brand: "" }); return; }
+    updateRow(i, { spool_id: s.id, group_key: "", label: spoolLabel(s), color_hex: s.color_hex || "#888", material: s.material, color_name: s.color_name, brand: s.brand || "" });
+  };
 
+  const setMode = (i, mode) => {
+    updateRow(i, { mode, group_key: "", spool_id: "", label: "", color_hex: "#888", material: "", color_name: "", brand: "" });
+  };
+
+  const addRow = () => setUsages(prev => [...prev, { ...EMPTY_ROW }]);
   const removeRow = (i) => setUsages(prev => prev.filter((_, idx) => idx !== i));
 
-  // How many times can this job run given current stock?
+  // Runs possible calculation
   const runsAvailable = useMemo(() => {
-    const validUsages = usages.filter(u => u.group_key && parseFloat(u.grams) > 0);
-    if (validUsages.length === 0) return null;
+    const valid = usages.filter(u => (u.group_key || u.spool_id) && parseFloat(u.grams) > 0);
+    if (valid.length === 0) return null;
     let min = Infinity;
-    for (const u of validUsages) {
-      const grp = groups.find(g => g.key === u.group_key);
-      const total = grp?.totalGrams || 0;
+    for (const u of valid) {
       const needed = parseFloat(u.grams);
-      min = Math.min(min, Math.floor(total / needed));
+      let available = 0;
+      if (u.mode === "individual" && u.spool_id) {
+        const s = spools.find(sp => sp.id === u.spool_id);
+        available = s?.current_weight_grams || 0;
+      } else if (u.group_key) {
+        const grp = groups.find(g => g.key === u.group_key);
+        available = grp?.totalGrams || 0;
+      }
+      min = Math.min(min, Math.floor(available / needed));
     }
-    return min === Infinity ? 0 : min;
-  }, [usages, groups]);
+    return min === Infinity ? 0 : Math.max(0, min);
+  }, [usages, groups, spools]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validUsages = usages
-      .filter(u => u.group_key && parseFloat(u.grams) > 0)
+      .filter(u => (u.group_key || u.spool_id) && parseFloat(u.grams) > 0)
       .map(u => ({
-        group_key: u.group_key,
+        mode: u.mode,
+        group_key: u.group_key || "",
+        spool_id: u.spool_id || "",
         spool_label: u.label,
         spool_color_hex: u.color_hex,
         material: u.material,
@@ -149,38 +178,75 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
           <div className="space-y-3">
             {usages.map((u, i) => (
               <div key={i} className="bg-card border border-border rounded-xl p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {u.group_key && (
-                      <div className="w-4 h-4 rounded-full flex-shrink-0 border border-white/10" style={{ backgroundColor: u.color_hex }} />
-                    )}
-                    <span className="text-xs text-muted-foreground">{u.label || "Select filament group…"}</span>
+                {/* Header row */}
+                <div className="flex items-center justify-between gap-2">
+                  {/* Mode toggle */}
+                  <div className="flex rounded-lg overflow-hidden border border-border text-xs font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setMode(i, "group")}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors ${u.mode === "group" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                    >
+                      <Layers className="w-3 h-3" /> Group
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode(i, "individual")}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors ${u.mode === "individual" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                    >
+                      <Package className="w-3 h-3" /> Specific
+                    </button>
                   </div>
                   {usages.length > 1 && (
-                    <button type="button" onClick={() => removeRow(i)} className="p-1 rounded active:bg-muted">
+                    <button type="button" onClick={() => removeRow(i)} className="p-1 rounded active:bg-muted ml-auto">
                       <Trash2 className="w-4 h-4 text-red-400" />
                     </button>
                   )}
                 </div>
 
-                <select
-                  value={u.group_key}
-                  onChange={e => selectGroup(i, e.target.value)}
-                  className="w-full h-11 bg-muted border border-border text-foreground text-sm rounded-md px-3"
-                >
-                  <option value="">Choose filament…</option>
-                  {groups.map(g => (
-                    <option key={g.key} value={g.key}>
-                      {g.label} — {Math.round(g.totalGrams)}g total
-                    </option>
-                  ))}
-                </select>
+                {/* Color preview + selection label */}
+                {(u.group_key || u.spool_id) && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0 border border-white/10" style={{ backgroundColor: u.color_hex }} />
+                    <span className="text-xs text-muted-foreground truncate">{u.label}</span>
+                  </div>
+                )}
 
+                {/* Selector */}
+                {u.mode === "group" ? (
+                  <select
+                    value={u.group_key}
+                    onChange={e => selectGroup(i, e.target.value)}
+                    className="w-full h-11 bg-muted border border-border text-foreground text-sm rounded-md px-3"
+                  >
+                    <option value="">Choose filament group…</option>
+                    {groups.map(g => (
+                      <option key={g.key} value={g.key}>
+                        {g.label} — {Math.round(g.totalGrams)}g total
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <select
+                    value={u.spool_id}
+                    onChange={e => selectSpool(i, e.target.value)}
+                    className="w-full h-11 bg-muted border border-border text-foreground text-sm rounded-md px-3"
+                  >
+                    <option value="">Choose specific spool…</option>
+                    {activeSpools.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {spoolLabel(s)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {/* Grams input */}
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     value={u.grams}
-                    onChange={e => setUsageGrams(i, e.target.value)}
+                    onChange={e => updateRow(i, { grams: e.target.value })}
                     placeholder="Grams needed"
                     min="0.1"
                     step="0.1"
