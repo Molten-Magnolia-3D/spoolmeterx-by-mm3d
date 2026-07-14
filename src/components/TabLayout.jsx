@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard";
-import ScanPage from "@/pages/ScanPage";
+import MyBarcodesPage from "@/pages/MyBarcodesPage";
 import QuickJobsPage from "@/pages/QuickJobsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -17,8 +17,8 @@ export default function TabLayout() {
       <div style={{ display: pathname === "/" ? "block" : "none" }}>
         <Dashboard />
       </div>
-      <div style={{ display: pathname === "/scan" ? "block" : "none" }}>
-        <ScanPage />
+      <div style={{ display: pathname === "/my-barcodes" ? "block" : "none" }}>
+        <MyBarcodesPage />
       </div>
       <div style={{ display: pathname === "/quick-jobs" ? "block" : "none" }}>
         <QuickJobsPage />

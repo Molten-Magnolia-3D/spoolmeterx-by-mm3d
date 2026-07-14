@@ -1,9 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { Package, ScanBarcode, Zap, Settings } from "lucide-react";
+import { Package, Barcode, Zap, Settings } from "lucide-react";
 
 const TABS = [
   { label: "Inventory", icon: Package, path: "/" },
-  { label: "Scan", icon: ScanBarcode, path: "/scan" },
+  { label: "Barcodes", icon: Barcode, path: "/my-barcodes" },
   { label: "Quick Jobs", icon: Zap, path: "/quick-jobs" },
   { label: "Settings", icon: Settings, path: "/settings" },
 ];
@@ -23,9 +23,7 @@ export default function BottomTabBar() {
         {TABS.map(({ label, icon: Icon, path }) => {
           const active = isActive(path);
           return (
-            <Link key={label} to={path} className="flex-1 relative flex items-stretch" onClick={() => {
-              if (path === "/scan") window.dispatchEvent(new Event("scan-tab-reset"));
-            }}>
+            <Link key={label} to={path} className="flex-1 relative flex items-stretch">
               <span className={`flex flex-col items-center justify-center gap-0.5 py-2.5 flex-1 transition-colors active:opacity-60 ${active ? "text-primary" : "text-muted-foreground"}`}>
                 <Icon className={`w-5 h-5 transition-transform ${active ? "scale-110" : "scale-100"}`} />
                 <span className={`text-[10px] font-medium leading-none mt-0.5 ${active ? "text-primary" : "text-muted-foreground"}`}>{label}</span>

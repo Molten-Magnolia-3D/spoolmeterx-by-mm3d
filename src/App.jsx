@@ -17,6 +17,7 @@ import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import AdminPage from '@/pages/AdminPage';
 import RedeemCodePage from '@/pages/RedeemCodePage';
 import MyBarcodesPage from '@/pages/MyBarcodesPage';
+import ScanPage from '@/pages/ScanPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import LandingPage from '@/pages/LandingPage';
@@ -25,7 +26,7 @@ import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
 
-const TAB_ROUTES = ["/", "/scan", "/quick-jobs", "/settings"];
+const TAB_ROUTES = ["/", "/my-barcodes", "/quick-jobs", "/settings"];
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated } = useAuth();
@@ -67,9 +68,10 @@ const AuthenticatedApp = () => {
         <Route element={<ProtectedRoute unauthenticatedElement={<LandingPage />} />}>
           {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
           <Route path="/" element={null} />
-          <Route path="/scan" element={null} />
+          <Route path="/my-barcodes" element={null} />
           <Route path="/quick-jobs" element={null} />
           <Route path="/settings" element={null} />
+          <Route path="/scan" element={<PageTransition><ScanPage /></PageTransition>} />
           <Route path="/add" element={
             <PageTransition><AddSpoolPage /></PageTransition>
           } />
@@ -88,9 +90,7 @@ const AuthenticatedApp = () => {
           <Route path="/redeem" element={
             <PageTransition><RedeemCodePage /></PageTransition>
           } />
-          <Route path="/my-barcodes" element={
-            <PageTransition><MyBarcodesPage /></PageTransition>
-          } />
+
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
