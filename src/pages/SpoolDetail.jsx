@@ -151,7 +151,7 @@ export default function SpoolDetail() {
       </div>
 
       {view === "edit" ? (
-        <div className="p-4 pb-8">
+        <div className="p-4 pb-32">
           <SpoolForm
             initialData={spool}
             onSubmit={handleEdit}

@@ -340,7 +340,7 @@ export default function ScanPage() {
           {scannedCode && <p className="text-xs text-muted-foreground font-mono">{scannedCode}</p>}
         </div>
       </div>
-      <div className="p-4 pb-8">
+      <div className="p-4 pb-32">
         {scannedCode && (
           <div className="bg-blue-950/40 border border-blue-800/50 rounded-lg px-4 py-2 mb-4">
             <p className="text-xs text-blue-300">New barcode — filling details will save it for future scans</p>
