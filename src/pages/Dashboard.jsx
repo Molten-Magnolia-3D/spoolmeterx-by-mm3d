@@ -89,7 +89,12 @@ export default function Dashboard() {
   useEffect(() => {
     load();
     const unsub = base44.entities.Spool.subscribe(() => load());
-    return () => unsub();
+    const onSpoolsUpdated = () => load();
+    window.addEventListener("spools-updated", onSpoolsUpdated);
+    return () => {
+      unsub();
+      window.removeEventListener("spools-updated", onSpoolsUpdated);
+    };
   }, []);
 
   const active = spools.filter(s => !s.is_empty);
