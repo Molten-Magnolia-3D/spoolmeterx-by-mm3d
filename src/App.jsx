@@ -104,6 +104,32 @@ const AuthenticatedApp = () => {
 };
 
 // Apply saved accessibility settings before first render
+
+// Theme: check explicit override first, then fall back to system preference
+const savedTheme = localStorage.getItem("a11y_theme"); // "dark" | "light" | null
+if (savedTheme === "dark") {
+  document.documentElement.classList.add("dark");
+  document.documentElement.classList.remove("theme-dark");
+} else if (savedTheme === "light") {
+  // Force light by blocking the media-query selector
+  document.documentElement.classList.remove("dark");
+  document.documentElement.classList.add("theme-light");
+} else {
+  // Follow system — mark with theme-dark so CSS :not() selector works correctly
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  if (prefersDark) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+  // Live-update if system preference changes
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!localStorage.getItem("a11y_theme")) {
+      document.documentElement.classList.toggle("dark", e.matches);
+    }
+  });
+}
+
 const savedFontSize = localStorage.getItem("a11y_font_size");
 if (savedFontSize) {
   const sizes = { sm: "14px", md: "16px", lg: "18px", xl: "21px" };

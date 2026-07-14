@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh.jsx";
+import useModalBackHandler from "@/hooks/useModalBackHandler";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit2, Trash2, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,10 @@ export default function MyBarcodesPage() {
   };
 
   const { containerProps, PullIndicator } = usePullToRefresh(load);
+
+  // Android hardware back button — close form/scanner before leaving the page
+  useModalBackHandler(showForm, () => setShowForm(false));
+  useModalBackHandler(showScanner, () => setShowScanner(false));
 
   useEffect(() => { load(); }, []);
 

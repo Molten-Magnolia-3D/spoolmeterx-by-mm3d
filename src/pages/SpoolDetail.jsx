@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { syncBarcodeMapping } from "@/lib/syncBarcodeMapping";
 import { useParams, useNavigate } from "react-router-dom";
 import useSafeBack from "@/hooks/useSafeBack";
+import useModalBackHandler from "@/hooks/useModalBackHandler";
 import { ArrowLeft, Pencil, Trash2, Minus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,10 @@ export default function SpoolDetail() {
   const [jobName, setJobName] = useState("");
   const [logLoading, setLogLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Android hardware back button — collapse sub-views before leaving the page
+  useModalBackHandler(view === "edit", () => setView("detail"));
+  useModalBackHandler(view === "log", () => setView("detail"));
 
   useEffect(() => {
     loadAll();

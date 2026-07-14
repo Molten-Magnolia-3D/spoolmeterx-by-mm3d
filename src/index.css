@@ -4,6 +4,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light theme (system preference, no explicit override) ── */
+@media (prefers-color-scheme: light) {
+  :root:not(.dark):not(.theme-dark) {
+    --background: 210 20% 97%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 92%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 20% 90%;
+    --muted-foreground: 215 20% 40%;
+    --accent: 210 20% 88%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 20% 86%;
+    --input: 210 20% 86%;
+    --ring: 217 91% 50%;
+    --sidebar-background: 210 20% 94%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 217 91% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 88%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 210 20% 86%;
+    --sidebar-ring: 217 91% 50%;
+  }
+}
+
 @layer base {
   :root {
     --background: 222 47% 7%;

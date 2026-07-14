@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { syncBarcodeMapping } from "@/lib/syncBarcodeMapping";
 import { useNavigate, Link } from "react-router-dom";
 import useSafeBack from "@/hooks/useSafeBack";
+import useModalBackHandler from "@/hooks/useModalBackHandler";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import SpoolForm from "@/components/SpoolForm";
 import { ArrowLeft, CheckCircle, Camera, ScanBarcode, Plus, Minus, Trash2, PackagePlus } from "lucide-react";
@@ -20,6 +21,13 @@ export default function ScanPage() {
   const [scanQueue, setScanQueue] = useState([]); // [{ code, mapping, quantity }]
   const [originStep, setOriginStep] = useState("scanning"); // to know where to go back after found/manual
   const scannerInputRef = useRef(null);
+
+  // Android hardware back — collapse sub-steps before leaving the page
+  useModalBackHandler(step === "scanning", () => setStep("choose"));
+  useModalBackHandler(step === "scanner", () => setStep("choose"));
+  useModalBackHandler(step === "queue", () => setStep(originStep));
+  useModalBackHandler(step === "found", () => setStep(originStep));
+  useModalBackHandler(step === "manual", () => setStep(originStep));
 
   // Reset to choose screen whenever the scan tab is re-entered
   useEffect(() => {
