@@ -94,12 +94,11 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Brand */}
       <div>
-        <Label className="text-sm text-muted-foreground mb-1 block">Brand *</Label>
+        <Label className="text-sm text-muted-foreground mb-1 block">Brand <span className="text-muted-foreground/50">(optional)</span></Label>
         <Input
           value={form.brand}
           onChange={e => set("brand", e.target.value.slice(0, CHAR_LIMITS.brand))}
           placeholder="e.g. Bambu, Prusament, Hatchbox"
-          required
           maxLength={CHAR_LIMITS.brand}
           className="h-12 bg-muted border-border text-foreground"
         />
