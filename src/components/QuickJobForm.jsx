@@ -3,6 +3,7 @@ import { ArrowLeft, Plus, Trash2, Layers, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import NativeSelect from "@/components/NativeSelect";
 
 // Build unique filament groups from spools (material+color_name+brand)
 function buildGroups(spools) {
@@ -153,7 +154,7 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
 
   return (
     <div className="min-h-screen bg-background max-w-2xl mx-auto">
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
         <button onClick={onCancel} className="p-2 -ml-2 rounded-full active:bg-muted">
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -223,37 +224,27 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
 
                 {/* Selector */}
                 {u.mode === "group" ? (
-                  <select
+                  <NativeSelect
                     value={u.group_key}
-                    onChange={e => selectGroup(i, e.target.value)}
-                    className="w-full h-11 bg-muted border border-border text-foreground text-sm rounded-md px-3"
-                  >
-                    <option value="">Choose filament group…</option>
-                    {groups.map(g => {
+                    onChange={v => selectGroup(i, v)}
+                    placeholder="Choose filament group…"
+                    className="h-11"
+                    options={groups.map(g => {
                       const taken = usedGroupKeys(i).has(g.key);
-                      return (
-                        <option key={g.key} value={g.key} disabled={taken}>
-                          {taken ? "✗ " : ""}{g.label} — {Math.round(g.totalGrams)}g total
-                        </option>
-                      );
+                      return { value: g.key, label: `${taken ? "✗ " : ""}${g.label} — ${Math.round(g.totalGrams)}g total` };
                     })}
-                  </select>
+                  />
                 ) : (
-                  <select
+                  <NativeSelect
                     value={u.spool_id}
-                    onChange={e => selectSpool(i, e.target.value)}
-                    className="w-full h-11 bg-muted border border-border text-foreground text-sm rounded-md px-3"
-                  >
-                    <option value="">Choose specific spool…</option>
-                    {activeSpools.map(s => {
+                    onChange={v => selectSpool(i, v)}
+                    placeholder="Choose specific spool…"
+                    className="h-11"
+                    options={activeSpools.map(s => {
                       const taken = usedSpoolIds(i).has(s.id);
-                      return (
-                        <option key={s.id} value={s.id} disabled={taken}>
-                          {taken ? "✗ " : ""}{spoolLabel(s)}
-                        </option>
-                      );
+                      return { value: s.id, label: `${taken ? "✗ " : ""}${spoolLabel(s)}` };
                     })}
-                  </select>
+                  />
                 )}
 
                 {/* Grams input */}

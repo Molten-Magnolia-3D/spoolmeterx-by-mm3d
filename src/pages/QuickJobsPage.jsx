@@ -195,7 +195,7 @@ export default function QuickJobsPage() {
 
   return (
     <div className="min-h-screen bg-background max-w-2xl mx-auto">
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center justify-between" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
         <h1 className="font-semibold text-foreground">Quick Jobs</h1>
         <Button
           onClick={() => isPro ? (setEditingJob(null), setView("new")) : setShowPaywall(true)}

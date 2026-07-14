@@ -41,6 +41,7 @@ export default function Dashboard() {
   const [isPulling, setIsPulling] = useState(false);
   const [pullY, setPullY] = useState(0);
   const touchStartY = useRef(0);
+  const isRefreshing = useRef(false);
   const contentRef = useRef(null);
 
 
@@ -49,33 +50,36 @@ export default function Dashboard() {
   const groupedAlerts = localStorage.getItem("ff_grouped_alerts") === "true";
 
   // Pull-to-refresh
-  const safeTop = (() => {
-    try {
-      const v = getComputedStyle(document.documentElement).getPropertyValue("--sat").trim();
-      return v ? parseInt(v) : 0;
-    } catch { return 0; }
-  })();
-
   const handleTouchStart = (e) => {
     if (contentRef.current?.scrollTop === 0) {
       touchStartY.current = e.touches[0].clientY;
+    } else {
+      touchStartY.current = 0;
     }
   };
   const handleTouchMove = (e) => {
-    if (touchStartY.current === 0) return;
-    const dy = (e.touches[0].clientY - safeTop) - (touchStartY.current - safeTop);
+    if (touchStartY.current === 0 || isRefreshing.current) return;
+    const dy = e.touches[0].clientY - touchStartY.current;
     if (dy > 0 && contentRef.current?.scrollTop === 0) {
-      setPullY(Math.min(dy * 0.4, 60));
+      // Resist the pull — only show indicator when gesture is intentional
+      setPullY(Math.min(dy * 0.35, 64));
+    } else if (dy < 0) {
+      // Scrolling down — cancel pull
+      touchStartY.current = 0;
+      setPullY(0);
     }
   };
   const handleTouchEnd = async () => {
-    if (pullY > 45) {
+    const triggered = pullY > 52;
+    setPullY(0);
+    touchStartY.current = 0;
+    if (triggered && !isRefreshing.current) {
+      isRefreshing.current = true;
       setIsPulling(true);
       await load();
       setIsPulling(false);
+      isRefreshing.current = false;
     }
-    setPullY(0);
-    touchStartY.current = 0;
   };
 
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
@@ -199,7 +203,7 @@ export default function Dashboard() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pt-3 pb-2">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pb-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
         <div className="flex items-center justify-between gap-2 min-w-0">
           <h1 className="text-base font-bold text-foreground font-heading truncate min-w-0">
             SpoolmeterX <span className="text-muted-foreground font-normal text-xs">by MM3D</span>
@@ -226,8 +230,14 @@ export default function Dashboard() {
 
       {/* Pull-to-refresh indicator */}
       {(pullY > 0 || isPulling) && (
-        <div className="flex justify-center py-2 transition-all" style={{ height: isPulling ? 44 : pullY }}>
-          <div className={`w-6 h-6 border-2 border-primary border-t-transparent rounded-full ${isPulling ? "animate-spin" : ""}`} style={{ opacity: Math.min(pullY / 45, 1) }} />
+        <div
+          className="flex items-center justify-center overflow-hidden transition-[height] duration-150"
+          style={{ height: isPulling ? 48 : pullY }}
+        >
+          <div
+            className={`w-6 h-6 border-2 border-primary border-t-transparent rounded-full ${isPulling ? "animate-spin" : ""}`}
+            style={{ opacity: isPulling ? 1 : Math.min(pullY / 52, 1) }}
+          />
         </div>
       )}
 
