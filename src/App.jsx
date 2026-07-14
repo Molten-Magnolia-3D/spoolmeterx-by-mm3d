@@ -15,6 +15,7 @@ import Register from '@/pages/Register';
 import PricingPage from '@/pages/PricingPage';
 import UpgradeSuccess from '@/pages/UpgradeSuccess';
 import AdminPage from '@/pages/AdminPage';
+import RoadmapPage from '@/pages/RoadmapPage';
 import RedeemCodePage from '@/pages/RedeemCodePage';
 import MyBarcodesPage from '@/pages/MyBarcodesPage';
 import ScanPage from '@/pages/ScanPage';
@@ -87,6 +88,9 @@ const AuthenticatedApp = () => {
           } />
           <Route path="/redeem" element={
             <PageTransition><RedeemCodePage /></PageTransition>
+          } />
+          <Route path="/roadmap" element={
+            <PageTransition><RoadmapPage /></PageTransition>
           } />
 
         </Route>

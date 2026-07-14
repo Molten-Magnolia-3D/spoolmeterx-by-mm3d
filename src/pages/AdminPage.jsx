@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import SubPageHeader from "@/components/SubPageHeader";
 import NativeSelect from "@/components/NativeSelect";
 
-const TABS = ["Promo Codes", "Subscriptions", "Filament Types", "Users", "Barcode Library", "All Spools", "Feedback"];
+const TABS = ["Promo Codes", "Subscriptions", "Filament Types", "Users", "Barcode Library", "All Spools", "Feedback", "Roadmap"];
 
 export default function AdminPage() {
   const [tab, setTab] = useState("Promo Codes");
@@ -53,6 +53,7 @@ export default function AdminPage() {
         {tab === "Barcode Library" && <BarcodeLibraryTab />}
         {tab === "All Spools" && <AllSpoolsTab />}
         {tab === "Feedback" && <FeedbackTab />}
+        {tab === "Roadmap" && <RoadmapTab />}
       </div>
     </div>
   );
@@ -698,6 +699,141 @@ function UsersTab() {
               >
                 <Trash2 className="w-3.5 h-3.5 text-destructive" />
               </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ROADMAP ───────────────────────────────────────────────────────────────────
+function RoadmapTab() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({ title: "", description: "", status: "planned", category: "", sort_order: 0 });
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const data = await base44.entities.Roadmap.list("sort_order", 200);
+    setItems(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => {
+    setEditId(null);
+    setForm({ title: "", description: "", status: "planned", category: "", sort_order: items.length });
+    setShowForm(true);
+  };
+
+  const openEdit = (item) => {
+    setEditId(item.id);
+    setForm({ title: item.title, description: item.description || "", status: item.status, category: item.category || "", sort_order: item.sort_order ?? 0 });
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim()) return;
+    setSaving(true);
+    const payload = { ...form, sort_order: parseInt(form.sort_order) || 0 };
+    if (editId) {
+      await base44.entities.Roadmap.update(editId, payload);
+    } else {
+      await base44.entities.Roadmap.create(payload);
+    }
+    setSaving(false);
+    setShowForm(false);
+    setEditId(null);
+    load();
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this roadmap item?")) return;
+    await base44.entities.Roadmap.delete(id);
+    load();
+  };
+
+  const statusColors = { planned: "bg-muted text-muted-foreground", in_progress: "bg-blue-900/40 text-blue-400", done: "bg-green-900/40 text-green-400" };
+  const statusLabels = { planned: "Planned", in_progress: "In Progress", done: "Shipped" };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{items.length} items</p>
+        <Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="w-4 h-4" /> Add Item</Button>
+      </div>
+
+      {showForm && (
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <p className="font-semibold text-foreground">{editId ? "Edit Item" : "New Roadmap Item"}</p>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Title *</Label>
+              <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Weight history charts" className="h-10 bg-muted border-border text-foreground" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Description</Label>
+              <textarea
+                value={form.description}
+                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="More details about this feature…"
+                rows={3}
+                className="w-full rounded-md border border-border bg-muted text-foreground text-sm px-3 py-2 resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Status</Label>
+                <NativeSelect value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={["planned", "in_progress", "done"]} />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Category (optional)</Label>
+                <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="e.g. Mobile, Analytics" className="h-10 bg-muted border-border text-foreground" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Sort order</Label>
+                <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} className="h-10 bg-muted border-border text-foreground" />
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button size="sm" variant="outline" onClick={() => setShowForm(false)} className="flex-1 border-border text-foreground">Cancel</Button>
+            <Button size="sm" onClick={handleSave} disabled={saving || !form.title.trim()} className="flex-1">{saving ? "Saving…" : "Save"}</Button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
+      ) : items.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No roadmap items yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {items.map(item => (
+            <div key={item.id} className="bg-card border border-border rounded-xl p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <p className="font-semibold text-foreground text-sm">{item.title}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status]}`}>{statusLabels[item.status]}</span>
+                  </div>
+                  {item.description && <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>}
+                  {item.category && <p className="text-xs text-primary/70 mt-1">{item.category} · order {item.sort_order}</p>}
+                </div>
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button onClick={() => openEdit(item)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center active:opacity-70">
+                    <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70">
+                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

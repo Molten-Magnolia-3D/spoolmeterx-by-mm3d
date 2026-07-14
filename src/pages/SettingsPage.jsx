@@ -190,6 +190,10 @@ export default function SettingsPage() {
           <p className="text-sm text-foreground font-medium">🏷️ My Barcode Library</p>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </Link>
+        <Link to="/roadmap" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
+          <p className="text-sm text-foreground font-medium">🗺️ View Roadmap</p>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
         {currentUser?.role === "admin" && (
           <Link to="/admin" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
             <p className="text-sm text-foreground font-medium">🛠️ Admin Panel</p>
