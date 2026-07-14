@@ -80,6 +80,7 @@ export default function SettingsPage() {
   const [fontSize, setFontSize] = useState(() => localStorage.getItem("a11y_font_size") || "md");
   const [highContrast, setHighContrast] = useState(() => localStorage.getItem("a11y_high_contrast") === "true");
   const [reduceMotion, setReduceMotion] = useState(() => localStorage.getItem("a11y_reduce_motion") === "true");
+  const [theme, setTheme] = useState(() => localStorage.getItem("a11y_theme") || "system"); // "light" | "dark" | "system"
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => {});
@@ -110,6 +111,24 @@ export default function SettingsPage() {
     }
     localStorage.setItem("a11y_reduce_motion", reduceMotion);
   }, [reduceMotion]);
+
+  const applyTheme = (value) => {
+    setTheme(value);
+    if (value === "dark") {
+      localStorage.setItem("a11y_theme", "dark");
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("theme-light");
+    } else if (value === "light") {
+      localStorage.setItem("a11y_theme", "light");
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("theme-light");
+    } else {
+      localStorage.removeItem("a11y_theme");
+      document.documentElement.classList.remove("theme-light");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.classList.toggle("dark", prefersDark);
+    }
+  };
 
   const { plan, spoolLimit, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
 
@@ -252,6 +271,30 @@ export default function SettingsPage() {
                 className={`py-2 rounded-lg text-center border transition-colors ${fontSize === f.value ? "bg-primary text-primary-foreground border-primary" : "bg-muted border-border text-muted-foreground"}`}
               >
                 <span className={f.cls}>{f.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Theme */}
+        <div className="px-4 py-4 border-b border-border/50">
+          <div className="flex items-center gap-2 mb-3">
+            <Sun className="w-4 h-4 text-muted-foreground" />
+            <p className="text-sm text-foreground font-medium">Theme</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: "light", label: "Light", icon: <Sun className="w-4 h-4" /> },
+              { value: "dark", label: "Dark", icon: <Moon className="w-4 h-4" /> },
+              { value: "system", label: "System", icon: <span className="text-base">⚙️</span> },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => applyTheme(opt.value)}
+                className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border transition-colors ${theme === opt.value ? "bg-primary text-primary-foreground border-primary" : "bg-muted border-border text-muted-foreground"}`}
+              >
+                {opt.icon}
+                <span className="text-xs font-medium">{opt.label}</span>
               </button>
             ))}
           </div>
