@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh.jsx";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit2, Trash2, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,8 @@ export default function MyBarcodesPage() {
     }
     setLoading(false);
   };
+
+  const { containerProps, PullIndicator } = usePullToRefresh(load);
 
   useEffect(() => { load(); }, []);
 
@@ -94,7 +97,8 @@ export default function MyBarcodesPage() {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" {...containerProps}>
+      {PullIndicator}
       <SubPageHeader
         title="My Barcodes"
         right={<Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="w-4 h-4" /> Add</Button>}

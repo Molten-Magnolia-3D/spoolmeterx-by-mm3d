@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh.jsx";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import useSafeBack from "@/hooks/useSafeBack";
@@ -47,6 +48,8 @@ export default function QuickJobsPage() {
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const { plan, isTrialActive } = useSubscription(currentUser);
   const isPro = plan !== "free" || isTrialActive;
+
+  const { containerProps, PullIndicator } = usePullToRefresh(loadAll);
 
   useEffect(() => {
     loadAll();
@@ -194,7 +197,8 @@ export default function QuickJobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background max-w-2xl mx-auto">
+    <div className="min-h-screen bg-background max-w-2xl mx-auto" {...containerProps}>
+      {PullIndicator}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center justify-between" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
         <h1 className="font-semibold text-foreground">Quick Jobs</h1>
         <Button

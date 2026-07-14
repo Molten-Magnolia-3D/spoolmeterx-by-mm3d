@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh.jsx";
 import { base44 } from "@/api/base44Client";
 import { syncColorHistory } from "@/hooks/useColorHistory";
 import { Link } from "react-router-dom";
@@ -38,53 +39,11 @@ export default function Dashboard() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [quickLogSpool, setQuickLogSpool] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [isPulling, setIsPulling] = useState(false);
-  const [pullY, setPullY] = useState(0);
-  const touchStartY = useRef(0);
-  const isRefreshing = useRef(false);
-  const contentRef = useRef(null);
-
-
   const criticalThreshold = parseInt(localStorage.getItem("ff_critical") || "100");
   const lowThreshold = parseInt(localStorage.getItem("ff_low") || "300");
   const groupedAlerts = localStorage.getItem("ff_grouped_alerts") === "true";
 
-  // Pull-to-refresh — only arm when scroll offset is exactly 0 at touchstart
-  const handleTouchStart = (e) => {
-    touchStartY.current = contentRef.current?.scrollTop === 0
-      ? e.touches[0].clientY
-      : 0;
-  };
-  const handleTouchMove = (e) => {
-    // Not armed, or already refreshing → let native scroll proceed
-    if (touchStartY.current === 0 || isRefreshing.current) return;
-    // If content has scrolled away from top during the gesture, disarm immediately
-    if (contentRef.current?.scrollTop > 0) {
-      touchStartY.current = 0;
-      setPullY(0);
-      return;
-    }
-    const dy = e.touches[0].clientY - touchStartY.current;
-    if (dy > 0) {
-      setPullY(Math.min(dy * 0.35, 64));
-    } else {
-      // Upward swipe — disarm so normal scroll isn't blocked
-      touchStartY.current = 0;
-      setPullY(0);
-    }
-  };
-  const handleTouchEnd = async () => {
-    const triggered = pullY > 52;
-    setPullY(0);
-    touchStartY.current = 0;
-    if (triggered && !isRefreshing.current) {
-      isRefreshing.current = true;
-      setIsPulling(true);
-      await load();
-      setIsPulling(false);
-      isRefreshing.current = false;
-    }
-  };
+  const { containerProps, PullIndicator } = usePullToRefresh(load);
 
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const { plan, spoolLimit, isTrialActive, trialDaysLeft } = useSubscription(currentUser);
@@ -201,10 +160,7 @@ export default function Dashboard() {
   return (
     <div
       className="min-h-screen bg-background max-w-2xl mx-auto"
-      ref={contentRef}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      {...containerProps}
     >
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pb-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
@@ -233,17 +189,7 @@ export default function Dashboard() {
       </div>
 
       {/* Pull-to-refresh indicator */}
-      {(pullY > 0 || isPulling) && (
-        <div
-          className="flex items-center justify-center overflow-hidden transition-[height] duration-150"
-          style={{ height: isPulling ? 48 : pullY }}
-        >
-          <div
-            className={`w-6 h-6 border-2 border-primary border-t-transparent rounded-full ${isPulling ? "animate-spin" : ""}`}
-            style={{ opacity: isPulling ? 1 : Math.min(pullY / 52, 1) }}
-          />
-        </div>
-      )}
+      {PullIndicator}
 
       {/* Trial Banner */}
       {isTrialActive && (
