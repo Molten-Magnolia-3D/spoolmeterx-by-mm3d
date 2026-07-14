@@ -16,7 +16,8 @@ function calcRuns(job, spools) {
   let min = Infinity;
   for (const u of job.usages) {
     let available = 0;
-    if (u.mode === "individual" && u.spool_id) {
+    const isIndividual = u.mode === "individual" || (u.spool_id && !u.group_key);
+    if (isIndividual && u.spool_id) {
       const s = spools.find(sp => sp.id === u.spool_id && !sp.is_empty);
       available = s?.current_weight_grams || 0;
     } else {
@@ -69,6 +70,10 @@ export default function QuickJobsPage() {
     setRunning(job.id);
     setRunResult(null);
     try {
+      // Always fetch fresh spool data before running to avoid stale-state mismatches
+      const freshSpools = await base44.entities.Spool.list("-updated_date", 200);
+      setSpools(freshSpools);
+
       const allUpdates = [];
       const shortages = [];
       // Track running totals per spool so multi-usage jobs don't double-count the same spool
@@ -80,9 +85,10 @@ export default function QuickJobsPage() {
       const deductAvailable = (s, amt) => { spoolAvailable[s.id] = (spoolAvailable[s.id] ?? s.current_weight_grams) - amt; };
 
       for (const u of job.usages) {
-        // Individual spool mode
-        if (u.mode === "individual" && u.spool_id) {
-          const s = spools.find(sp => sp.id === u.spool_id && !sp.is_empty);
+        // Individual spool mode — also handles old jobs where mode wasn't saved but spool_id was set without group_key
+        const isIndividual = u.mode === "individual" || (u.spool_id && !u.group_key);
+        if (isIndividual && u.spool_id) {
+          const s = freshSpools.find(sp => sp.id === u.spool_id && !sp.is_empty);
           if (!s || getAvailable(s) < u.grams) {
             shortages.push(u.spool_label || u.color_name);
             continue;
@@ -101,7 +107,7 @@ export default function QuickJobsPage() {
         }
 
         // Group-based: drain smallest spools first, respecting already-allocated amounts
-        const grpSpools = spools
+        const grpSpools = freshSpools
           .filter(s => !s.is_empty && s.material === u.material && s.color_name === u.color_name && (s.brand || "") === (u.brand || ""))
           .sort((a, b) => getAvailable(a) - getAvailable(b));
 
