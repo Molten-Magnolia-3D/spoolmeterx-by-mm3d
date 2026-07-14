@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { syncBarcodeMapping } from "@/lib/syncBarcodeMapping";
 import { useParams, useNavigate } from "react-router-dom";
 import useSafeBack from "@/hooks/useSafeBack";
 import { ArrowLeft, Pencil, Trash2, Minus, Clock } from "lucide-react";
@@ -86,25 +87,6 @@ export default function SpoolDetail() {
       setLogs(l => l.filter(lg => lg.id !== optimisticLog.id));
     } finally {
       setLogLoading(false);
-    }
-  };
-
-  const syncBarcodeMapping = async (data) => {
-    if (!data.barcode) return;
-    // Check if mapping already exists for this barcode
-    const existing = await base44.entities.BarcodeMapping.filter({ barcode_value: data.barcode });
-    const payload = {
-      barcode_value: data.barcode,
-      brand: data.brand || "",
-      material: data.material,
-      color_name: data.color_name || "",
-      color_hex: data.color_hex || "",
-      weight_grams: data.starting_weight_grams || undefined,
-    };
-    if (existing.length > 0) {
-      await base44.entities.BarcodeMapping.update(existing[0].id, payload);
-    } else {
-      await base44.entities.BarcodeMapping.create(payload);
     }
   };
 

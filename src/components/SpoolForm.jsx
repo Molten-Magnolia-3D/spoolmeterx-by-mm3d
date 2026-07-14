@@ -268,29 +268,17 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
       </div>
 
       {/* Optional fields */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label className="text-sm text-muted-foreground mb-1 block">Price per kg ($) <span className="text-muted-foreground/50">(optional)</span></Label>
-          <Input
-            type="number"
-            value={form.purchase_price_per_kg}
-            onChange={e => set("purchase_price_per_kg", e.target.value)}
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-            className="h-12 bg-muted border-border text-foreground"
-          />
-        </div>
-        <div>
-          <Label className="text-sm text-muted-foreground mb-1 block">Printer Slot</Label>
-          <Input
-            value={form.printer_slot}
-            onChange={e => set("printer_slot", e.target.value.slice(0, CHAR_LIMITS.printer_slot))}
-            placeholder="e.g. A1, Slot 2"
-            maxLength={CHAR_LIMITS.printer_slot}
-            className="h-12 bg-muted border-border text-foreground"
-          />
-        </div>
+      <div>
+        <Label className="text-sm text-muted-foreground mb-1 block">Price per kg ($) <span className="text-muted-foreground/50">(optional)</span></Label>
+        <Input
+          type="number"
+          value={form.purchase_price_per_kg}
+          onChange={e => set("purchase_price_per_kg", e.target.value)}
+          placeholder="0.00"
+          step="0.01"
+          min="0"
+          className="h-12 bg-muted border-border text-foreground"
+        />
       </div>
 
       <div>

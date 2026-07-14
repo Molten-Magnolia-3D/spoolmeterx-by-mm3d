@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { syncBarcodeMapping } from "@/lib/syncBarcodeMapping";
 import { useNavigate, Link } from "react-router-dom";
 import useSafeBack from "@/hooks/useSafeBack";
 import BarcodeScanner from "@/components/BarcodeScanner";
@@ -88,16 +89,8 @@ export default function ScanPage() {
   const handleSaveNewSpool = async (formData) => {
     setLoading(true);
     try {
-      if (scannedCode && !foundMapping) {
-        await base44.entities.BarcodeMapping.create({
-          barcode_value: scannedCode,
-          brand: formData.brand,
-          material: formData.material,
-          color_name: formData.color_name,
-          color_hex: formData.color_hex,
-          weight_grams: formData.starting_weight_grams,
-          notes: formData.notes,
-        });
+      if (scannedCode) {
+        await syncBarcodeMapping({ ...formData, barcode: scannedCode });
       }
       addToQueue(scannedCode, formData, formData.quantity || 1);
       setStep(originStep);
