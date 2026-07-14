@@ -27,7 +27,7 @@ export default function AddSpoolPage() {
   return (
     <div className="min-h-screen bg-background max-w-2xl mx-auto">
       <SubPageHeader title="Add Spool" fallback="/" />
-      <div className="p-4 pb-32">
+      <div className="p-4 pb-10">
         <SpoolForm
           onSubmit={handleSubmit}
           onCancel={() => navigate(-1)}

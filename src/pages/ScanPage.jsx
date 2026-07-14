@@ -250,7 +250,7 @@ export default function ScanPage() {
           <span className="font-semibold text-foreground">Review Spools</span>
         </div>
 
-        <div className="p-4 space-y-3 pb-32">
+        <div className="p-4 space-y-3 pb-44">
           {scanQueue.map(item => (
             <div key={item.code} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
               <div
@@ -277,7 +277,7 @@ export default function ScanPage() {
             </div>
           ))}
         </div>
-        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]" style={{ paddingBottom: "calc(1rem + 60px)" }}>
           <Button
             onClick={handleCommitQueue}
             disabled={loading || scanQueue.length === 0}
