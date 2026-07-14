@@ -22,6 +22,7 @@ import ScanPage from '@/pages/ScanPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import LandingPage from '@/pages/LandingPage';
+import DeleteAccountPage from '@/pages/DeleteAccountPage';
 import SettingsPage from '@/pages/SettingsPage';
 import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={!isAuthenticated ? <LandingPage /> : null} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/delete-account" element={<DeleteAccountPage />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<LandingPage />} />}>
           {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
           <Route path="/my-barcodes" element={null} />
