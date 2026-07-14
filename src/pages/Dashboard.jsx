@@ -110,7 +110,8 @@ export default function Dashboard() {
       return (
         s.brand?.toLowerCase().includes(q) ||
         s.color_name?.toLowerCase().includes(q) ||
-        s.material?.toLowerCase().includes(q)
+        s.material?.toLowerCase().includes(q) ||
+        s.barcode?.toLowerCase().includes(q)
       );
     }
     return true;
