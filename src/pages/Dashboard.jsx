@@ -21,6 +21,8 @@ const SORT_OPTIONS = [
   { value: "weight_asc", label: "Weight: low → high" },
   { value: "weight_desc", label: "Weight: high → low" },
   { value: "brand", label: "Brand A–Z" },
+  { value: "color_az", label: "Color A–Z" },
+  { value: "color_za", label: "Color Z–A" },
 ];
 
 export default function Dashboard() {
@@ -119,6 +121,8 @@ export default function Dashboard() {
     if (sort === "weight_asc") return (a.current_weight_grams || 0) - (b.current_weight_grams || 0);
     if (sort === "weight_desc") return (b.current_weight_grams || 0) - (a.current_weight_grams || 0);
     if (sort === "brand") return (a.brand || "").localeCompare(b.brand || "");
+    if (sort === "color_az") return (a.color_name || "").localeCompare(b.color_name || "");
+    if (sort === "color_za") return (b.color_name || "").localeCompare(a.color_name || "");
     return 0;
   });
 
