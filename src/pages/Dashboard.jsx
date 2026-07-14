@@ -43,8 +43,6 @@ export default function Dashboard() {
   const lowThreshold = parseInt(localStorage.getItem("ff_low") || "300");
   const groupedAlerts = localStorage.getItem("ff_grouped_alerts") === "true";
 
-  const { containerProps, PullIndicator } = usePullToRefresh(load);
-
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const { plan, spoolLimit, isTrialActive, trialDaysLeft } = useSubscription(currentUser);
 
@@ -54,6 +52,8 @@ export default function Dashboard() {
     setLoading(false);
     syncColorHistory(data);
   }, []);
+
+  const { containerProps, PullIndicator } = usePullToRefresh(load);
 
   useEffect(() => {
     load();

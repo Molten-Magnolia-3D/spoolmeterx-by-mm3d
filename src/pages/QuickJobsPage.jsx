@@ -49,8 +49,6 @@ export default function QuickJobsPage() {
   const { plan, isTrialActive } = useSubscription(currentUser);
   const isPro = plan !== "free" || isTrialActive;
 
-  const { containerProps, PullIndicator } = usePullToRefresh(loadAll);
-
   useEffect(() => {
     loadAll();
     const unsub = base44.entities.Spool.subscribe(() => {
@@ -68,6 +66,8 @@ export default function QuickJobsPage() {
     setSpools(s);
     setLoading(false);
   };
+
+  const { containerProps, PullIndicator } = usePullToRefresh(loadAll);
 
   const handleRun = async (job) => {
     setRunning(job.id);
