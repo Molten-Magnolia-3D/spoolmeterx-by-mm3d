@@ -57,7 +57,6 @@
     }
   },
   "required": [
-    "brand",
     "material",
     "color_name",
     "starting_weight_grams",
