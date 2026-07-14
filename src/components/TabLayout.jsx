@@ -6,7 +6,7 @@ import QuickJobsPage from "@/pages/QuickJobsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import BottomTabBar from "@/components/BottomTabBar";
 
-const TAB_PATHS = ["/", "/my-barcodes", "/quick-jobs", "/settings"];
+const TAB_PATHS = ["/home", "/my-barcodes", "/quick-jobs", "/settings"];
 
 /**
  * Persistent tab layout — all four tab pages are always mounted so their
@@ -18,7 +18,7 @@ const TAB_PATHS = ["/", "/my-barcodes", "/quick-jobs", "/settings"];
  */
 export default function TabLayout() {
   const { pathname } = useLocation();
-  const [resetKeys, setResetKeys] = useState({ "/": 0, "/my-barcodes": 0, "/quick-jobs": 0, "/settings": 0 });
+  const [resetKeys, setResetKeys] = useState({ "/home": 0, "/my-barcodes": 0, "/quick-jobs": 0, "/settings": 0 });
 
   useEffect(() => {
     const onReset = (e) => {
@@ -33,8 +33,8 @@ export default function TabLayout() {
 
   return (
     <>
-      <div style={{ display: pathname === "/" ? "block" : "none" }}>
-        <Dashboard key={resetKeys["/"]} />
+      <div style={{ display: pathname === "/home" ? "block" : "none" }}>
+        <Dashboard key={resetKeys["/home"]} />
       </div>
       <div style={{ display: pathname === "/my-barcodes" ? "block" : "none" }}>
         <MyBarcodesPage key={resetKeys["/my-barcodes"]} />

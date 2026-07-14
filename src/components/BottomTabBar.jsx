@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Package, Barcode, Zap, Settings } from "lucide-react";
 
 const TABS = [
-  { label: "Inventory", icon: Package, path: "/" },
+  { label: "Inventory", icon: Package, path: "/home" },
   { label: "Barcodes", icon: Barcode, path: "/my-barcodes" },
   { label: "Quick Jobs", icon: Zap, path: "/quick-jobs" },
   { label: "Settings", icon: Settings, path: "/settings" },
@@ -13,7 +13,7 @@ export default function BottomTabBar() {
   const navigate = useNavigate();
 
   const isActive = (path) => {
-    if (path === "/") return pathname === "/";
+    if (path === "/home") return pathname === "/home";
     return pathname.startsWith(path);
   };
 
