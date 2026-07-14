@@ -92,7 +92,37 @@ export default function SpoolDetail() {
   const handleEdit = async (data) => {
     setSaving(true);
     try {
-      await base44.entities.Spool.update(id, data);
+      // Check if color-related fields changed — if so, update the whole group
+      const colorChanged =
+        data.color_name !== spool.color_name ||
+        data.color_hex !== spool.color_hex ||
+        data.color_type !== spool.color_type ||
+        JSON.stringify(data.color_hex_list) !== JSON.stringify(spool.color_hex_list);
+
+      if (colorChanged) {
+        // Find all spools in the same group (same brand+material+color_name+color_hex)
+        const groupSpools = await base44.entities.Spool.filter({
+          brand: spool.brand || null,
+          material: spool.material,
+          color_name: spool.color_name,
+          color_hex: spool.color_hex || null,
+          created_by_id: spool.created_by_id,
+        });
+        const groupIds = groupSpools.map(s => s.id).filter(sid => sid !== id);
+        const colorPatch = {
+          color_name: data.color_name,
+          color_hex: data.color_hex,
+          color_type: data.color_type,
+          color_hex_list: data.color_hex_list,
+        };
+        await Promise.all([
+          base44.entities.Spool.update(id, data),
+          ...groupIds.map(sid => base44.entities.Spool.update(sid, colorPatch)),
+        ]);
+      } else {
+        await base44.entities.Spool.update(id, data);
+      }
+
       setView("detail");
       loadAll();
     } finally {
