@@ -43,10 +43,8 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
     }
+    // For auth_required, fall through and let routes handle it (show LandingPage at "/")
   }
 
   const isTabRoute = TAB_ROUTES.includes(location.pathname);
@@ -63,11 +61,11 @@ const AuthenticatedApp = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<LandingPage />} />
         <Route path="/home" element={<LandingPage />} />
+        <Route path="/" element={!isAuthenticated ? <LandingPage /> : null} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<LandingPage />} />}>
           {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
-          <Route path="/" element={null} />
           <Route path="/my-barcodes" element={null} />
           <Route path="/quick-jobs" element={null} />
           <Route path="/settings" element={null} />
