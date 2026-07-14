@@ -54,7 +54,7 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
         <span className="font-semibold text-foreground">{initialData ? "Edit Job" : "New Quick Job"}</span>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 pb-10 space-y-5">
+      <form onSubmit={handleSubmit} className="p-4 pb-32 space-y-5">
         <div>
           <Label className="text-sm text-muted-foreground mb-1 block">Job Name *</Label>
           <Input

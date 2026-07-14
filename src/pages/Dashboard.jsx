@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { syncColorHistory } from "@/hooks/useColorHistory";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
@@ -83,11 +84,12 @@ export default function Dashboard() {
     const data = await base44.entities.Spool.list("-updated_date", 200);
     setSpools(data);
     setLoading(false);
+    syncColorHistory(data);
   }, []);
 
   const debouncedLoad = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(load, 800);
+    debounceRef.current = setTimeout(load, 100);
   }, [load]);
 
   useEffect(() => {
@@ -262,7 +264,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="px-4 py-4 space-y-4 pb-24">
+      <div className="px-4 py-4 space-y-4 pb-28">
         {/* Low Stock Widget */}
         {!loading && <LowStockWidget spools={spools} criticalThreshold={criticalThreshold} lowThreshold={lowThreshold} groupedAlerts={groupedAlerts} />}
 

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, X } from "lucide-react";
 import { swatchStyle } from "@/components/SpoolSwatch";
+import ColorHistoryBar from "@/components/ColorHistoryBar";
 // Select removed — material uses pill buttons now
 
 const BASE_MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU"];
@@ -179,7 +180,11 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
       {form.color_type === "single" && (
         <div>
           <Label className="text-sm text-muted-foreground mb-1 block">Color</Label>
-          <div className="flex flex-wrap gap-2 mb-2">
+          <ColorHistoryBar
+            currentHex={form.color_hex}
+            onSelect={entry => { set("color_hex", entry.hex); if (entry.name && !form.color_name) set("color_name", entry.name); }}
+          />
+          <div className="flex flex-wrap gap-2 mb-2 mt-2">
             {PRESET_COLORS.map(c => (
               <button
                 key={c.hex}

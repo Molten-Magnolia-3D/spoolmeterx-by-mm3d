@@ -151,7 +151,7 @@ export default function QuickJobsPage() {
       )}
       {showPaywall && <ProPaywall feature="Quick Jobs" onClose={() => setShowPaywall(false)} />}
 
-      <div className="p-4 space-y-3 pb-8">
+      <div className="p-4 space-y-3 pb-28">
         {runResult && (
           <div className={`rounded-xl px-4 py-3 text-sm font-medium ${runResult.success ? "bg-green-950/50 border border-green-800/50 text-green-300" : "bg-red-950/50 border border-red-800/50 text-red-300"}`}>
             {runResult.message}

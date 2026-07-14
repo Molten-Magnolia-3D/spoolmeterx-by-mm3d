@@ -160,7 +160,7 @@ export default function SpoolDetail() {
           />
         </div>
       ) : (
-        <div className="p-4 space-y-4 pb-8">
+        <div className="p-4 space-y-4 pb-28">
           {/* Hero card */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="h-20 w-full" style={{ backgroundColor: spool.color_hex || "#888" }} />
