@@ -9,14 +9,7 @@
       "type": "string"
     },
     "material": {
-      "type": "string",
-      "enum": [
-        "PLA",
-        "PETG",
-        "ABS",
-        "ASA",
-        "TPU"
-      ]
+      "type": "string"
     },
     "color_name": {
       "type": "string"
@@ -32,9 +25,7 @@
     }
   },
   "required": [
-    "barcode_value",
-    "brand",
-    "material"
+    "barcode_value"
   ],
   "rls": {
     "create": {
