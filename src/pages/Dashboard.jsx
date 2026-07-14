@@ -41,6 +41,7 @@ export default function Dashboard() {
   const touchStartY = useRef(0);
   const contentRef = useRef(null);
 
+
   const criticalThreshold = parseInt(localStorage.getItem("ff_critical") || "100");
   const lowThreshold = parseInt(localStorage.getItem("ff_low") || "300");
   const groupedAlerts = localStorage.getItem("ff_grouped_alerts") === "true";
@@ -78,8 +79,6 @@ export default function Dashboard() {
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
   const { plan, spoolLimit, isTrialActive, trialDaysLeft } = useSubscription(currentUser);
 
-  const debounceRef = useRef(null);
-
   const load = useCallback(async () => {
     const data = await base44.entities.Spool.list("-updated_date", 200);
     setSpools(data);
@@ -87,15 +86,10 @@ export default function Dashboard() {
     syncColorHistory(data);
   }, []);
 
-  const debouncedLoad = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(load, 100);
-  }, [load]);
-
   useEffect(() => {
     load();
-    const unsub = base44.entities.Spool.subscribe(debouncedLoad);
-    return () => { unsub(); if (debounceRef.current) clearTimeout(debounceRef.current); };
+    const unsub = base44.entities.Spool.subscribe(() => load());
+    return () => unsub();
   }, []);
 
   const active = spools.filter(s => !s.is_empty);

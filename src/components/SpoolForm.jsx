@@ -178,27 +178,32 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
 
       {/* Single color picker */}
       {form.color_type === "single" && (
-        <div>
-          <Label className="text-sm text-muted-foreground mb-1 block">Color</Label>
-          <ColorHistoryBar
-            currentHex={form.color_hex}
-            onSelect={entry => { set("color_hex", entry.hex); if (entry.name && !form.color_name) set("color_name", entry.name); }}
-          />
-          <div className="flex flex-wrap gap-2 mb-2 mt-2">
-            {PRESET_COLORS.map(c => (
-              <button
-                key={c.hex}
-                type="button"
-                onClick={() => { set("color_hex", c.hex); set("color_name", form.color_name || c.name); }}
-                className="w-8 h-8 rounded-full border-2 transition-all"
-                style={{ backgroundColor: c.hex, borderColor: form.color_hex === c.hex ? "white" : "transparent" }}
-                title={c.name}
-              />
-            ))}
+        <div className="space-y-3">
+          <div>
+            <Label className="text-sm text-muted-foreground mb-2 block">Color</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {PRESET_COLORS.map(c => (
+                <button
+                  key={c.hex}
+                  type="button"
+                  onClick={() => { set("color_hex", c.hex); set("color_name", form.color_name || c.name); }}
+                  className="w-8 h-8 rounded-full border-2 transition-all"
+                  style={{ backgroundColor: c.hex, borderColor: form.color_hex === c.hex ? "white" : "transparent" }}
+                  title={c.name}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="color" value={form.color_hex} onChange={e => set("color_hex", e.target.value)} className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border-0" />
+              <Input value={form.color_hex} onChange={e => set("color_hex", e.target.value)} className="h-10 bg-muted border-border text-foreground font-mono text-sm" />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <input type="color" value={form.color_hex} onChange={e => set("color_hex", e.target.value)} className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border-0" />
-            <Input value={form.color_hex} onChange={e => set("color_hex", e.target.value)} className="h-10 bg-muted border-border text-foreground font-mono text-sm" />
+          <div>
+            <Label className="text-sm text-muted-foreground mb-2 block">Colors Used</Label>
+            <ColorHistoryBar
+              currentHex={form.color_hex}
+              onSelect={entry => { set("color_hex", entry.hex); if (entry.name && !form.color_name) set("color_name", entry.name); }}
+            />
           </div>
         </div>
       )}
