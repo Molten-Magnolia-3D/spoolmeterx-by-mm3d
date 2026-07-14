@@ -17,12 +17,18 @@ function normalizeHeader(h) {
   return lower.replace(/\s+/g, "_");
 }
 
+/**
+ * Parses a CSV into spool rows and optional barcode mappings.
+ * Returns { spools: [], barcodeMappings: [] }
+ * barcodeMappings are only included for rows that have a non-empty barcode column.
+ */
 export function parseCsv(text) {
   const lines = text.trim().split("\n").map(l => l.trim()).filter(Boolean);
   if (lines.length < 2) throw new Error("CSV must have a header row and at least one data row.");
 
   const headers = lines[0].split(",").map(normalizeHeader);
-  const rows = [];
+  const spools = [];
+  const barcodeMappings = [];
 
   for (let i = 1; i < lines.length; i++) {
     const vals = lines[i].split(",");
@@ -42,9 +48,25 @@ export function parseCsv(text) {
     const missing = REQUIRED.filter(f => !row[f]);
     if (missing.length) continue; // skip invalid rows silently
 
-    rows.push(row);
+    // Extract barcode before pushing spool row
+    const barcodeValue = row.barcode;
+    delete row.barcode;
+
+    spools.push(row);
+
+    // Build barcode mapping if barcode was provided
+    if (barcodeValue) {
+      barcodeMappings.push({
+        barcode_value: barcodeValue,
+        brand: row.brand || "",
+        material: row.material || "",
+        color_name: row.color_name || "",
+        color_hex: row.color_hex || "",
+        weight_grams: row.starting_weight_grams || undefined,
+      });
+    }
   }
 
-  if (rows.length === 0) throw new Error("No valid rows found. Make sure required columns exist: brand, material, color_name, starting_weight_grams, current_weight_grams.");
-  return rows;
+  if (spools.length === 0) throw new Error("No valid rows found. Make sure required columns exist: brand, material, color_name, starting_weight_grams, current_weight_grams.");
+  return { spools, barcodeMappings };
 }

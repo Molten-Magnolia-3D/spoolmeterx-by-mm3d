@@ -140,10 +140,26 @@ export default function SettingsPage() {
     setImportMessage("");
     try {
       const text = await file.text();
-      const rows = parseCsv(text);
-      await base44.entities.Spool.bulkCreate(rows);
+      const { spools, barcodeMappings } = parseCsv(text);
+      await base44.entities.Spool.bulkCreate(spools);
+
+      // Sync barcode library for rows that had a barcode
+      let barcodeNote = "";
+      if (barcodeMappings.length > 0) {
+        await Promise.all(barcodeMappings.map(async (mapping) => {
+          // Upsert: check if barcode already exists, update it, otherwise create
+          const existing = await base44.entities.BarcodeMapping.filter({ barcode_value: mapping.barcode_value });
+          if (existing.length > 0) {
+            await base44.entities.BarcodeMapping.update(existing[0].id, mapping);
+          } else {
+            await base44.entities.BarcodeMapping.create(mapping);
+          }
+        }));
+        barcodeNote = ` · ${barcodeMappings.length} barcode${barcodeMappings.length !== 1 ? "s" : ""} saved to library`;
+      }
+
       setImportStatus("done");
-      setImportMessage(`Imported ${rows.length} spool${rows.length !== 1 ? "s" : ""} successfully.`);
+      setImportMessage(`Imported ${spools.length} spool${spools.length !== 1 ? "s" : ""} successfully${barcodeNote}.`);
       base44.entities.Spool.list("-updated_date", 200).then(setSpools).catch(() => {});
     } catch (err) {
       setImportStatus("error");
@@ -345,8 +361,8 @@ export default function SettingsPage() {
         <Button
           variant="outline" size="sm"
           onClick={() => {
-            const header = "brand,material,color_name,color_hex,starting_weight_grams,current_weight_grams,purchase_price_per_kg,printer_slot,notes,date_opened";
-            const example = "Bambu Lab,PLA,Matte Black,#222222,1000,950,19.99,Slot 1,Example spool,2026-01-01";
+            const header = "brand,material,color_name,color_hex,starting_weight_grams,current_weight_grams,purchase_price_per_kg,printer_slot,notes,date_opened,barcode";
+            const example = "Bambu Lab,PLA,Matte Black,#222222,1000,950,19.99,Slot 1,Example spool,2026-01-01,1234567890123";
             const blob = new Blob([header + "\n" + example], { type: "text/csv" });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
