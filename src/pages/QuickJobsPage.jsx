@@ -9,8 +9,10 @@ import ProPaywall from "@/components/ProPaywall";
 import { useSubscription } from "@/hooks/useSubscription";
 
 // How many times can a job run given current spools?
+// Uses the same per-spool allocation tracking as handleRun to avoid double-counting.
 function calcRuns(job, spools) {
   if (!job.usages?.length) return 0;
+  // Simulate one run to see if it's possible, track allocated grams per spool
   let min = Infinity;
   for (const u of job.usages) {
     let available = 0;
@@ -18,14 +20,11 @@ function calcRuns(job, spools) {
       const s = spools.find(sp => sp.id === u.spool_id && !sp.is_empty);
       available = s?.current_weight_grams || 0;
     } else {
-      const grpSpools = spools.filter(s =>
-        !s.is_empty &&
-        s.material === u.material &&
-        s.color_name === u.color_name &&
-        (s.brand || "") === (u.brand || "")
-      );
-      available = grpSpools.reduce((sum, s) => sum + (s.current_weight_grams || 0), 0);
+      available = spools
+        .filter(s => !s.is_empty && s.material === u.material && s.color_name === u.color_name && (s.brand || "") === (u.brand || ""))
+        .reduce((sum, s) => sum + (s.current_weight_grams || 0), 0);
     }
+    if (u.grams <= 0) continue;
     min = Math.min(min, Math.floor(available / u.grams));
   }
   return min === Infinity ? 0 : Math.max(0, min);
@@ -70,29 +69,43 @@ export default function QuickJobsPage() {
     setRunning(job.id);
     setRunResult(null);
     try {
-      // For each usage, find active spools in that group sorted by least weight first (use up smaller ones first)
       const allUpdates = [];
       const shortages = [];
+      // Track running totals per spool so multi-usage jobs don't double-count the same spool
+      const spoolAvailable = {}; // spoolId -> available grams (starts from current_weight_grams)
+      const getAvailable = (s) => {
+        if (!(s.id in spoolAvailable)) spoolAvailable[s.id] = s.current_weight_grams || 0;
+        return spoolAvailable[s.id];
+      };
+      const deductAvailable = (s, amt) => { spoolAvailable[s.id] = (spoolAvailable[s.id] ?? s.current_weight_grams) - amt; };
 
       for (const u of job.usages) {
         // Individual spool mode
         if (u.mode === "individual" && u.spool_id) {
           const s = spools.find(sp => sp.id === u.spool_id && !sp.is_empty);
-          if (!s || s.current_weight_grams < u.grams) {
+          if (!s || getAvailable(s) < u.grams) {
             shortages.push(u.spool_label || u.color_name);
             continue;
           }
-          const newWeight = s.current_weight_grams - u.grams;
-          allUpdates.push({ spool: s, newWeight, grams_used: u.grams, job_name: job.name });
+          deductAvailable(s, u.grams);
+          const newWeight = getAvailable(s);
+          // Merge into existing update for this spool if already queued
+          const existing = allUpdates.find(x => x.spool.id === s.id);
+          if (existing) {
+            existing.newWeight = newWeight;
+            existing.grams_used += u.grams;
+          } else {
+            allUpdates.push({ spool: s, newWeight, grams_used: u.grams, job_name: job.name });
+          }
           continue;
         }
 
-        // Group-based: drain smallest spools first
+        // Group-based: drain smallest spools first, respecting already-allocated amounts
         const grpSpools = spools
           .filter(s => !s.is_empty && s.material === u.material && s.color_name === u.color_name && (s.brand || "") === (u.brand || ""))
-          .sort((a, b) => a.current_weight_grams - b.current_weight_grams);
+          .sort((a, b) => getAvailable(a) - getAvailable(b));
 
-        const total = grpSpools.reduce((sum, s) => sum + s.current_weight_grams, 0);
+        const total = grpSpools.reduce((sum, s) => sum + getAvailable(s), 0);
         if (total < u.grams) {
           shortages.push(u.spool_label || u.color_name);
           continue;
@@ -101,10 +114,18 @@ export default function QuickJobsPage() {
         let remaining = u.grams;
         for (const s of grpSpools) {
           if (remaining <= 0) break;
-          const deduct = Math.min(s.current_weight_grams, remaining);
-          const newWeight = s.current_weight_grams - deduct;
+          const avail = getAvailable(s);
+          const deduct = Math.min(avail, remaining);
           remaining -= deduct;
-          allUpdates.push({ spool: s, newWeight, grams_used: deduct, job_name: job.name });
+          deductAvailable(s, deduct);
+          const newWeight = getAvailable(s);
+          const existing = allUpdates.find(x => x.spool.id === s.id);
+          if (existing) {
+            existing.newWeight = newWeight;
+            existing.grams_used += deduct;
+          } else {
+            allUpdates.push({ spool: s, newWeight, grams_used: deduct, job_name: job.name });
+          }
         }
       }
 

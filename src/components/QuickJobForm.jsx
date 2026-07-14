@@ -98,6 +98,15 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
     updateRow(i, { mode, group_key: "", spool_id: "", label: "", color_hex: "#888", material: "", color_name: "", brand: "" });
   };
 
+  // IDs already picked in individual mode (excluding row i)
+  const usedSpoolIds = (excludeIdx) => new Set(
+    usages.filter((u, i) => i !== excludeIdx && u.mode === "individual" && u.spool_id).map(u => u.spool_id)
+  );
+  // Group keys already picked (excluding row i)
+  const usedGroupKeys = (excludeIdx) => new Set(
+    usages.filter((u, i) => i !== excludeIdx && u.mode === "group" && u.group_key).map(u => u.group_key)
+  );
+
   const addRow = () => setUsages(prev => [...prev, { ...EMPTY_ROW }]);
   const removeRow = (i) => setUsages(prev => prev.filter((_, idx) => idx !== i));
 
@@ -220,11 +229,14 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
                     className="w-full h-11 bg-muted border border-border text-foreground text-sm rounded-md px-3"
                   >
                     <option value="">Choose filament group…</option>
-                    {groups.map(g => (
-                      <option key={g.key} value={g.key}>
-                        {g.label} — {Math.round(g.totalGrams)}g total
-                      </option>
-                    ))}
+                    {groups.map(g => {
+                      const taken = usedGroupKeys(i).has(g.key);
+                      return (
+                        <option key={g.key} value={g.key} disabled={taken}>
+                          {taken ? "✗ " : ""}{g.label} — {Math.round(g.totalGrams)}g total
+                        </option>
+                      );
+                    })}
                   </select>
                 ) : (
                   <select
@@ -233,11 +245,14 @@ export default function QuickJobForm({ spools, initialData, onSave, onCancel }) 
                     className="w-full h-11 bg-muted border border-border text-foreground text-sm rounded-md px-3"
                   >
                     <option value="">Choose specific spool…</option>
-                    {activeSpools.map(s => (
-                      <option key={s.id} value={s.id}>
-                        {spoolLabel(s)}
-                      </option>
-                    ))}
+                    {activeSpools.map(s => {
+                      const taken = usedSpoolIds(i).has(s.id);
+                      return (
+                        <option key={s.id} value={s.id} disabled={taken}>
+                          {taken ? "✗ " : ""}{spoolLabel(s)}
+                        </option>
+                      );
+                    })}
                   </select>
                 )}
 
