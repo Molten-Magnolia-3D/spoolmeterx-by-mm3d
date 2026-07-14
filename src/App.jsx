@@ -26,7 +26,7 @@ import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
 
-const TAB_ROUTES = ["/home", "/my-barcodes", "/quick-jobs", "/settings"];
+const TAB_ROUTES = ["/", "/my-barcodes", "/quick-jobs", "/settings"];
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated } = useAuth();
@@ -62,12 +62,12 @@ const AuthenticatedApp = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<LandingPage />} />
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<LandingPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<LandingPage />} />}>
           {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
-          <Route path="/home" element={null} />
+          <Route path="/" element={null} />
           <Route path="/my-barcodes" element={null} />
           <Route path="/quick-jobs" element={null} />
           <Route path="/settings" element={null} />
