@@ -8,6 +8,24 @@ export default function AddSpoolPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
+  const syncBarcodeMapping = async (spoolData) => {
+    if (!spoolData.barcode) return;
+    const existing = await base44.entities.BarcodeMapping.filter({ barcode_value: spoolData.barcode });
+    const payload = {
+      barcode_value: spoolData.barcode,
+      brand: spoolData.brand || "",
+      material: spoolData.material,
+      color_name: spoolData.color_name || "",
+      color_hex: spoolData.color_hex || "",
+      weight_grams: spoolData.starting_weight_grams || undefined,
+    };
+    if (existing.length > 0) {
+      await base44.entities.BarcodeMapping.update(existing[0].id, payload);
+    } else {
+      await base44.entities.BarcodeMapping.create(payload);
+    }
+  };
+
   const handleSubmit = async (data) => {
     const { quantity, ...spoolData } = data;
     const count = Math.max(1, parseInt(quantity) || 1);
@@ -18,6 +36,7 @@ export default function AddSpoolPage() {
       } else {
         await base44.entities.Spool.bulkCreate(Array.from({ length: count }, () => ({ ...spoolData })));
       }
+      await syncBarcodeMapping(spoolData);
       navigate("/");
     } finally {
       setLoading(false);
