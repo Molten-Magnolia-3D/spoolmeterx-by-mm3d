@@ -35,11 +35,15 @@ export default function DeleteAccountDialog({ onClose }) {
         message: `[Account Deletion] Reason: ${selected}${selected === "Other" ? ` — ${other.trim()}` : ""}`,
         status: "new",
       });
-      // Delete user data
-      const spools = await base44.entities.Spool.list();
-      await Promise.all(spools.map(s => base44.entities.Spool.delete(s.id)));
-      const jobs = await base44.entities.QuickJob.list();
-      await Promise.all(jobs.map(j => base44.entities.QuickJob.delete(j.id)));
+      // Scrub all user-owned entity data in parallel
+      await Promise.all([
+        base44.entities.Spool.deleteMany({}),
+        base44.entities.QuickJob.deleteMany({}),
+        base44.entities.UsageLog.deleteMany({}),
+        base44.entities.BarcodeMapping.deleteMany({}),
+        base44.entities.UserSubscription.deleteMany({}),
+      ]);
+      // Sign out — platform removes the auth session server-side
       await base44.auth.logout("/login");
     } catch (err) {
       setError("Something went wrong. Please try again.");

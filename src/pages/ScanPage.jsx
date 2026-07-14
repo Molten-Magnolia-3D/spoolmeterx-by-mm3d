@@ -138,7 +138,7 @@ export default function ScanPage() {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto">
-          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
             <button onClick={goBack} className="p-2 -ml-2 rounded-full active:bg-muted">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -211,7 +211,7 @@ export default function ScanPage() {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto">
-          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
             <button onClick={() => setStep("choose")} className="p-2 -ml-2 rounded-full active:bg-muted">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -258,7 +258,7 @@ export default function ScanPage() {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto">
-          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
             <button onClick={() => setStep(originStep)} className="p-2 -ml-2 rounded-full active:bg-muted">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -314,7 +314,7 @@ export default function ScanPage() {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto">
-          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+          <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
             <button onClick={() => setStep(originStep)} className="p-2 -ml-2 rounded-full active:bg-muted">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -353,7 +353,7 @@ export default function ScanPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto">
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
           <button onClick={() => setStep(originStep)} className="p-2 -ml-2 rounded-full active:bg-muted">
             <ArrowLeft className="w-5 h-5" />
           </button>

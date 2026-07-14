@@ -49,22 +49,26 @@ export default function Dashboard() {
   const lowThreshold = parseInt(localStorage.getItem("ff_low") || "300");
   const groupedAlerts = localStorage.getItem("ff_grouped_alerts") === "true";
 
-  // Pull-to-refresh
+  // Pull-to-refresh — only arm when scroll offset is exactly 0 at touchstart
   const handleTouchStart = (e) => {
-    if (contentRef.current?.scrollTop === 0) {
-      touchStartY.current = e.touches[0].clientY;
-    } else {
-      touchStartY.current = 0;
-    }
+    touchStartY.current = contentRef.current?.scrollTop === 0
+      ? e.touches[0].clientY
+      : 0;
   };
   const handleTouchMove = (e) => {
+    // Not armed, or already refreshing → let native scroll proceed
     if (touchStartY.current === 0 || isRefreshing.current) return;
+    // If content has scrolled away from top during the gesture, disarm immediately
+    if (contentRef.current?.scrollTop > 0) {
+      touchStartY.current = 0;
+      setPullY(0);
+      return;
+    }
     const dy = e.touches[0].clientY - touchStartY.current;
-    if (dy > 0 && contentRef.current?.scrollTop === 0) {
-      // Resist the pull — only show indicator when gesture is intentional
+    if (dy > 0) {
       setPullY(Math.min(dy * 0.35, 64));
-    } else if (dy < 0) {
-      // Scrolling down — cancel pull
+    } else {
+      // Upward swipe — disarm so normal scroll isn't blocked
       touchStartY.current = 0;
       setPullY(0);
     }
