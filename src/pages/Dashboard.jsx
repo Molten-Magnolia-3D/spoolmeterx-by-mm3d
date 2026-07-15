@@ -17,7 +17,7 @@ import AdBanner from "@/components/AdBanner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const MATERIALS = ["All", "PLA", "PETG", "ABS", "ASA", "TPU"];
+const BASE_MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU"];
 const SORT_OPTIONS = [
   { value: "updated", label: "Recently updated" },
   { value: "weight_asc", label: "Weight: low → high" },
@@ -256,7 +256,7 @@ export default function Dashboard() {
 
         {/* Material Filter */}
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {MATERIALS.map(m => (
+          {["All", ...Array.from(new Set([...BASE_MATERIALS, ...spools.map(s => s.material).filter(Boolean)]))].map(m => (
             <button
               key={m}
               onClick={() => setFilter(m)}
