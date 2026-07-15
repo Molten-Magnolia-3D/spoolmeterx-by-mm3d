@@ -756,11 +756,13 @@ function RoadmapTab() {
 
   const categories = ["all", ...Array.from(new Set(items.map(i => i.category).filter(Boolean)))];
 
-  const displayed = items.filter(i => {
-    if (filterStatus !== "all" && i.status !== filterStatus) return false;
-    if (filterCategory !== "all" && i.category !== filterCategory) return false;
-    return true;
-  });
+  const displayed = items
+    .filter(i => {
+      if (filterStatus !== "all" && i.status !== filterStatus) return false;
+      if (filterCategory !== "all" && i.category !== filterCategory) return false;
+      return true;
+    })
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
   const openNew = () => {
     setEditId(null);
@@ -803,17 +805,30 @@ function RoadmapTab() {
     const dst = result.destination.index;
     if (src === dst) return;
 
-    // Reorder the displayed list
+    // Reorder the displayed (filtered) list
     const reordered = [...displayed];
     const [moved] = reordered.splice(src, 1);
     reordered.splice(dst, 0, moved);
 
-    // Assign new sort_order values starting at 1
-    const updated = reordered.map((item, idx) => ({ ...item, sort_order: idx + 1 }));
+    // Build a new full items list: replace displayed items in their new order,
+    // keeping non-displayed items in place, then re-number everything by position.
+    const displayedIds = new Set(displayed.map(i => i.id));
+    const nonDisplayed = items.filter(i => !displayedIds.has(i.id));
 
-    // Optimistic update: merge back into full items list
-    const updatedMap = Object.fromEntries(updated.map(i => [i.id, i]));
-    setItems(prev => prev.map(i => updatedMap[i.id] || i));
+    // Merge: slot reordered displayed items back, preserve non-displayed
+    // Re-number all items together sorted by their current sort_order
+    const allReordered = [...reordered, ...nonDisplayed].sort((a, b) => {
+      // Keep non-displayed items roughly in place relative to displayed
+      const aIsDisplayed = displayedIds.has(a.id);
+      const bIsDisplayed = displayedIds.has(b.id);
+      if (aIsDisplayed && bIsDisplayed) return reordered.indexOf(a) - reordered.indexOf(b);
+      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    });
+
+    const updated = allReordered.map((item, idx) => ({ ...item, sort_order: idx + 1 }));
+
+    // Optimistic update
+    setItems(updated);
 
     // Persist
     setReordering(true);
