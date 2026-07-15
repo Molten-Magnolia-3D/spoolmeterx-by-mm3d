@@ -654,11 +654,23 @@ function UsersTab() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label className="text-xs text-muted-foreground mb-1 block">Plan</Label>
-                        <NativeSelect value={editForm.plan} onChange={v => setEditForm(f => ({ ...f, plan: v }))} options={["free","trial","pro"]} />
+                        <select
+                          value={editForm.plan}
+                          onChange={e => setEditForm(f => ({ ...f, plan: e.target.value }))}
+                          className="w-full h-9 rounded-md border border-border bg-muted text-foreground text-sm px-2 focus:outline-none focus:ring-1 focus:ring-ring capitalize"
+                        >
+                          {["free","trial","pro"].map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground mb-1 block">Status</Label>
-                        <NativeSelect value={editForm.status} onChange={v => setEditForm(f => ({ ...f, status: v }))} options={["pending","active","canceled","ended"]} />
+                        <select
+                          value={editForm.status}
+                          onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                          className="w-full h-9 rounded-md border border-border bg-muted text-foreground text-sm px-2 focus:outline-none focus:ring-1 focus:ring-ring capitalize"
+                        >
+                          {["pending","active","canceled","ended"].map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
                       </div>
                       {editForm.plan === "trial" && (
                         <div className="col-span-2">
