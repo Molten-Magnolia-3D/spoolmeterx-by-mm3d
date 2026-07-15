@@ -28,6 +28,8 @@ export function usePullToRefresh(onRefresh) {
     }
     const dy = e.touches[0].clientY - touchStartY.current;
     if (dy > 0) {
+      // Prevent the native Android WebView pull-to-refresh from firing
+      if (e.cancelable) e.preventDefault();
       setPullY(Math.min(dy * 0.35, 64));
     } else {
       touchStartY.current = 0;

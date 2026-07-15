@@ -40,8 +40,12 @@ export default function BarcodeScanner({ onScan, onClose }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col"
+      style={{ paddingTop: "max(0px, env(safe-area-inset-top))", paddingBottom: "max(0px, env(safe-area-inset-bottom))" }}
+    >
+      <div className="flex items-center justify-between px-4 py-4 bg-background/80 backdrop-blur"
+        style={{ paddingTop: "max(16px, env(safe-area-inset-top))" }}
+      >
         <span className="text-base font-semibold text-foreground">Scan Barcode</span>
         <button onClick={onClose} className="p-2 rounded-full bg-muted active:bg-accent">
           <X className="w-5 h-5" />

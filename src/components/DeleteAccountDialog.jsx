@@ -52,7 +52,9 @@ export default function DeleteAccountDialog({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4 pb-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4"
+      style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
+    >
       <div className="bg-card border border-border rounded-2xl w-full max-w-sm shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
