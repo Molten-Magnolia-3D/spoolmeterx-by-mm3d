@@ -7,7 +7,9 @@ import { useNavigate } from "react-router-dom";
 export default function useSafeBack(fallback = "/") {
   const navigate = useNavigate();
   return () => {
-    if (window.history.length > 1) {
+    // navigate(-1) is unreliable when the app was loaded directly on a sub-page
+    // (browser history always has length > 1). Use router state delta instead.
+    if (window.history.state?.idx > 0) {
       navigate(-1);
     } else {
       navigate(fallback, { replace: true });
