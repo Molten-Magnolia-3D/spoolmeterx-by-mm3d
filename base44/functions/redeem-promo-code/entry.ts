@@ -26,8 +26,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: "This code has expired." }, { status: 400 });
     }
 
-    // Check max uses
-    if (promo.uses >= promo.max_uses) {
+    // Atomically increment uses only if still under max_uses (prevents TOCTOU race)
+    const incrementResult = await base44.asServiceRole.entities.PromoCode.updateMany(
+      { id: promo.id, is_active: true, $expr: { $lt: ["$uses", promo.max_uses] } },
+      { $inc: { uses: 1 } }
+    );
+
+    // If no document was updated, the code was already at max uses (another request beat us)
+    if (!incrementResult || incrementResult.modified_count === 0) {
       return Response.json({ error: "This code has reached its maximum number of uses." }, { status: 400 });
     }
 
@@ -51,9 +57,6 @@ Deno.serve(async (req) => {
     } else {
       await base44.asServiceRole.entities.UserSubscription.create(payload);
     }
-
-    // Increment uses
-    await base44.asServiceRole.entities.PromoCode.update(promo.id, { uses: (promo.uses || 0) + 1 });
 
     console.log(`Promo code ${upper} redeemed by ${user.email}, plan=${promo.plan}`);
 
