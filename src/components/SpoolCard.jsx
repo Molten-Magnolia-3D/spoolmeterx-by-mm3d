@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { swatchStyle } from "@/components/SpoolSwatch";
+import { swatchStyle, swatchBorderStyle } from "@/components/SpoolSwatch";
 import { CheckSquare, Square } from "lucide-react";
 
 function getStatus(current, starting) {
@@ -47,7 +47,7 @@ export default function SpoolCard({ spool, selectMode, selected, onToggleSelect,
         )}
 
         {/* Color swatch */}
-        <div className="w-10 h-10 rounded-lg border border-white/10 flex-shrink-0" style={swatchStyle(spool)} />
+        <div className="w-10 h-10 rounded-lg flex-shrink-0" style={{ ...swatchStyle(spool), ...swatchBorderStyle }} />
 
         {/* Info */}
         <div className="flex-1 min-w-0">
