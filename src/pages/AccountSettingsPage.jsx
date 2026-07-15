@@ -6,8 +6,8 @@ import SubPageHeader from "@/components/SubPageHeader";
 import { Button } from "@/components/ui/button";
 import DeleteAccountDialog from "@/components/DeleteAccountDialog";
 import {
-  Eye, EyeOff, LogOut, Trash2, ChevronRight, Crown,
-  CreditCard, ReceiptText, User, Mail, ShieldCheck, RefreshCw
+  LogOut, Trash2, ChevronRight, Crown,
+  CreditCard, ReceiptText, User, ShieldCheck, Mail
 } from "lucide-react";
 
 function SectionHeader({ children }) {
@@ -36,7 +36,8 @@ const PLAN_LABELS = {
 
 export default function AccountSettingsPage() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetSending, setResetSending] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -79,8 +80,13 @@ export default function AccountSettingsPage() {
   const isPro = plan === "pro" || plan === "lifetime";
   const planMeta = PLAN_LABELS[plan] || PLAN_LABELS.free;
 
-  // Mask the password — we don't have it, just show placeholder dots
-  const passwordDisplay = showPassword ? "Not stored — set via email link" : "••••••••••••";
+  const handleSendResetLink = async () => {
+    if (!currentUser?.email) return;
+    setResetSending(true);
+    await base44.auth.resetPasswordRequest(currentUser.email).catch(() => {});
+    setResetSending(false);
+    setResetSent(true);
+  };
 
   const memberSince = currentUser?.created_date
     ? new Date(currentUser.created_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
@@ -119,17 +125,19 @@ export default function AccountSettingsPage() {
         {/* Password row */}
         <div className="flex items-center justify-between px-4 py-3.5 bg-card border-b border-border/50">
           <p className="text-xs text-muted-foreground">Password</p>
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-foreground font-mono">{passwordDisplay}</p>
+          {resetSent ? (
+            <p className="text-xs text-green-400 font-medium">Link sent to your email ✓</p>
+          ) : (
             <button
               type="button"
-              onClick={() => setShowPassword(v => !v)}
-              className="p-1 rounded-md text-muted-foreground active:bg-muted"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              onClick={handleSendResetLink}
+              disabled={resetSending}
+              className="flex items-center gap-1.5 text-xs text-primary font-medium bg-primary/10 px-3 py-1.5 rounded-lg active:bg-primary/20 disabled:opacity-50"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <Mail className="w-3.5 h-3.5" />
+              {resetSending ? "Sending…" : "Send reset link"}
             </button>
-          </div>
+          )}
         </div>
         {memberSince && <InfoRow label="Member since" value={memberSince} />}
         {currentUser?.role === "admin" && <InfoRow label="Role" value="Admin" />}
