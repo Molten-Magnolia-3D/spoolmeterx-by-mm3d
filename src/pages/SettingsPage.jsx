@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import SubPageHeader from "@/components/SubPageHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import FeedbackForm from "@/components/FeedbackForm";
-import DeleteAccountDialog from "@/components/DeleteAccountDialog";
 import { exportSpoolsCsv } from "@/lib/exportCsv";
 import { parseCsv } from "@/lib/importCsv";
 import {
-  Bell, LogOut, Trash2, Download, Shield, Type, Sun, Moon,
-  ChevronRight
+  Bell, Download, Type, Sun, Moon, ChevronRight, User
 } from "lucide-react";
 
 const FONT_SIZES = [
@@ -59,11 +57,9 @@ function SettingRow({ label, sublabel, right, onClick }) {
 }
 
 export default function SettingsPage() {
-  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [spools, setSpools] = useState([]);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [importStatus, setImportStatus] = useState(null);
   const [importMessage, setImportMessage] = useState("");
 
@@ -130,7 +126,7 @@ export default function SettingsPage() {
     }
   };
 
-  const { plan, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
+  const { isBeta } = useSubscription(currentUser);
 
   const handleImportCsv = async (e) => {
     const file = e.target.files?.[0];
@@ -171,37 +167,26 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-background pb-24 max-w-2xl mx-auto">
       <SubPageHeader title="Settings" fallback="/" />
 
-      {/* Plan info */}
-      <SectionHeader>Subscription</SectionHeader>
-      <div className="bg-card border-b border-border/50 px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-foreground capitalize">
-              {isTrialActive ? "Free Trial" : plan} Plan
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {plan === "free" && !isTrialActive
-                ? "Includes ads · Quick Jobs locked"
-                : isTrialActive
-                ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left · Full access`
-                : "No ads · Full Quick Jobs"}
-            </p>
+      {/* Account Settings — top of menu */}
+      <div className="px-4 pt-4 pb-2">
+        <Link
+          to="/account"
+          className="flex items-center gap-4 bg-card border border-border/60 rounded-xl px-4 py-3.5 active:bg-muted"
+        >
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <User className="w-5 h-5 text-primary" />
           </div>
-          {plan === "free" && !isTrialActive && (
-            <Link to="/pricing" className="text-sm text-primary font-semibold bg-primary/10 px-3 py-1.5 rounded-lg">
-              Upgrade →
-            </Link>
-          )}
-        </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">{currentUser?.full_name || "Account"}</p>
+            <p className="text-xs text-muted-foreground truncate">{currentUser?.email || "Subscription · Billing · Sign out"}</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        </Link>
       </div>
 
       {/* Quick links */}
-      <SectionHeader>Account</SectionHeader>
+      <SectionHeader>App</SectionHeader>
       <div className="divide-y divide-border/50">
-        <Link to="/redeem" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
-          <p className="text-sm text-foreground font-medium">🎟️ Redeem Promo / Trial Code</p>
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
-        </Link>
         <Link to="/my-barcodes" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
           <p className="text-sm text-foreground font-medium">🏷️ My Barcode Library</p>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -210,12 +195,6 @@ export default function SettingsPage() {
           <p className="text-sm text-foreground font-medium">🗺️ View Roadmap</p>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </Link>
-        {currentUser?.role === "admin" && (
-          <Link to="/admin" className="flex items-center justify-between px-4 py-3.5 bg-card active:bg-muted">
-            <p className="text-sm text-foreground font-medium">🛠️ Admin Panel</p>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
-        )}
       </div>
 
       {/* Low stock thresholds */}
@@ -401,18 +380,6 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Sign out / delete */}
-      <SectionHeader>Account Actions</SectionHeader>
-      <div className="bg-card border-b border-border/50 px-4 py-4 space-y-3">
-        <Button variant="outline" className="w-full h-11 gap-2 border-border text-foreground" onClick={() => base44.auth.logout("/login")}>
-          <LogOut className="w-4 h-4" /> Sign Out
-        </Button>
-        <Button variant="outline" className="w-full h-11 gap-2 border-destructive/50 text-destructive" onClick={() => setShowDeleteAccount(true)}>
-          <Trash2 className="w-4 h-4" /> Delete Account
-        </Button>
-      </div>
-
-      {showDeleteAccount && <DeleteAccountDialog onClose={() => setShowDeleteAccount(false)} />}
     </div>
   );
 }

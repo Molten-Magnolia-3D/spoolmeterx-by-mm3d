@@ -24,6 +24,7 @@ import TermsOfService from '@/pages/TermsOfService';
 import LandingPage from '@/pages/LandingPage';
 import DeleteAccountPage from '@/pages/DeleteAccountPage';
 import SettingsPage from '@/pages/SettingsPage';
+import AccountSettingsPage from '@/pages/AccountSettingsPage';
 import TabLayout from '@/components/TabLayout';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -93,6 +94,9 @@ const AuthenticatedApp = () => {
           } />
           <Route path="/roadmap" element={
             <PageTransition><RoadmapPage /></PageTransition>
+          } />
+          <Route path="/account" element={
+            <PageTransition><AccountSettingsPage /></PageTransition>
           } />
 
         </Route>
