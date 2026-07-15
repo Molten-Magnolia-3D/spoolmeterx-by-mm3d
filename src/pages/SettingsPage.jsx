@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
-import SubPageHeader from "@/components/SubPageHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import FeedbackForm from "@/components/FeedbackForm";
@@ -165,7 +164,9 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-2xl mx-auto">
-      <SubPageHeader title="Settings" fallback="/" />
+      <div className="px-4 pt-4 pb-2">
+        <h1 className="text-2xl font-bold text-foreground font-heading">Settings</h1>
+      </div>
 
       {/* Account Settings — top of menu */}
       <div className="px-4 pt-4 pb-2">

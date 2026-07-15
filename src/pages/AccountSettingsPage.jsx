@@ -64,11 +64,11 @@ export default function AccountSettingsPage() {
     setCheckingOut(true);
     setCheckoutError("");
     try {
-      const res = await base44.functions["create-checkout"]({ plan: "pro" });
-      if (res?.redirectUrl) {
-        window.location.href = res.redirectUrl;
+      const res = await base44.functions.invoke("create-checkout", { plan: "pro" });
+      if (res?.data?.redirectUrl) {
+        window.location.href = res.data.redirectUrl;
       } else {
-        setCheckoutError(res?.error || "Could not start checkout.");
+        setCheckoutError(res?.data?.error || "Could not start checkout.");
       }
     } catch (e) {
       setCheckoutError(e.message || "Checkout failed.");
@@ -222,17 +222,13 @@ export default function AccountSettingsPage() {
             <div className="px-4 py-3.5 flex items-center gap-3">
               <ReceiptText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-foreground font-medium capitalize">
-                  {subscription.plan === "trial" ? "Free Trial" : `${subscription.plan} Plan`}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-                  Status: {subscription.status}
+                <p className="text-xs text-muted-foreground capitalize">
                   {subscription.trial_ends_at && subscription.plan === "trial"
-                    ? ` · Expires ${new Date(subscription.trial_ends_at).toLocaleDateString()}`
-                    : ""}
+                    ? `Expires ${new Date(subscription.trial_ends_at).toLocaleDateString()}`
+                    : subscription.plan === "pro" ? "SpoolmeterX Pro · $5.99/mo · Auto-renewing" : ""}
                 </p>
               </div>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${
                 subscription.status === "active" ? "bg-emerald-400/10 text-emerald-400" :
                 subscription.status === "canceled" ? "bg-destructive/10 text-destructive" :
                 "bg-muted text-muted-foreground"
@@ -240,14 +236,6 @@ export default function AccountSettingsPage() {
                 {subscription.status}
               </span>
             </div>
-            {subscription.plan === "pro" && (
-              <div className="px-4 py-3 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <p className="text-xs text-muted-foreground">
-                  SpoolmeterX Pro · $5.99/mo · Auto-renewing
-                </p>
-              </div>
-            )}
           </>
         ) : (
           <div className="px-4 py-5 text-center">

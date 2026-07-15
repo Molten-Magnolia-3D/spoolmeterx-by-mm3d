@@ -2,8 +2,9 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Check, Zap, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import SubPageHeader from "@/components/SubPageHeader";
+import useSafeBack from "@/hooks/useSafeBack";
 
 const PLANS = [
   {
@@ -47,6 +48,7 @@ const PLANS = [
 export default function PricingPage() {
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState("");
+  const goBack = useSafeBack("/account");
 
   const handleUpgrade = async (planId) => {
     setLoading(planId);
@@ -67,7 +69,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SubPageHeader title="Upgrade to Pro" />
+      <SubPageHeader title="Upgrade to Pro" fallback="/account" />
       <div className="px-4 py-6 max-w-md mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground font-heading">SpoolmeterX Pro</h1>

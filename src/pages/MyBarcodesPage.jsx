@@ -6,7 +6,6 @@ import { Plus, Edit2, Trash2, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import SubPageHeader from "@/components/SubPageHeader";
 import NativeSelect from "@/components/NativeSelect";
 import BarcodeScanner from "@/components/BarcodeScanner";
 
@@ -104,10 +103,10 @@ export default function MyBarcodesPage() {
   return (
     <div className="min-h-screen bg-background" {...containerProps}>
       {PullIndicator}
-      <SubPageHeader
-        title="My Barcodes"
-        right={<Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="w-4 h-4" /> Add</Button>}
-      />
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <h1 className="text-2xl font-bold text-foreground font-heading">My Barcodes</h1>
+        <Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="w-4 h-4" /> Add</Button>
+      </div>
 
       <div className="p-4 space-y-4 pb-24">
         <Input
