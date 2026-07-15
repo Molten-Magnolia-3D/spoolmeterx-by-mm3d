@@ -20,12 +20,12 @@ export default function ColorHistoryBar({ currentHex, onSelect }) {
             type="button"
             title={entry.name || entry.hex}
             onClick={() => onSelect(entry)}
-            className="w-8 h-8 rounded-full border-2 transition-all active:scale-95"
+            className="w-8 h-8 rounded-full transition-all active:scale-95"
             style={{
               backgroundColor: entry.hex,
-              borderColor: currentHex === entry.hex ? "white" : "transparent",
-              outline: currentHex === entry.hex ? "2px solid hsl(var(--primary))" : "none",
-              outlineOffset: "2px",
+              boxShadow: currentHex === entry.hex
+                ? "inset 0 0 0 1.5px rgba(0,0,0,0.18), inset 0 0 0 1.5px rgba(255,255,255,0.12), 0 0 0 2px hsl(var(--primary))"
+                : "inset 0 0 0 1.5px rgba(0,0,0,0.18), inset 0 0 0 1.5px rgba(255,255,255,0.12)",
             }}
           />
         ))}
