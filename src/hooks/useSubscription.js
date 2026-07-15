@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 
-const TRIAL_DAYS = 14;
+const DEFAULT_TRIAL_DAYS = 14;
 
-// Returns { plan, spoolLimit, status, isTrialActive, trialDaysLeft, loading, refresh }
+async function getTrialDays() {
+  try {
+    const settings = await base44.entities.AppSettings.filter({ key: "trial_days" });
+    if (settings.length > 0) return parseInt(settings[0].value) || DEFAULT_TRIAL_DAYS;
+  } catch {}
+  return DEFAULT_TRIAL_DAYS;
+}
+
+// Returns { plan, status, isTrialActive, trialDaysLeft, loading, refresh }
 export function useSubscription(user) {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,14 +34,14 @@ export function useSubscription(user) {
     try {
       const records = await base44.entities.UserSubscription.filter({ user_email: user.email });
       if (records.length === 0) {
+        const trialDays = await getTrialDays();
         const trialEnds = new Date();
-        trialEnds.setDate(trialEnds.getDate() + TRIAL_DAYS);
+        trialEnds.setDate(trialEnds.getDate() + trialDays);
         await base44.entities.UserSubscription.create({
           user_email: user.email,
           user_id: user.id,
           plan: "trial",
           status: "active",
-          spool_limit: 999999,
           trial_ends_at: trialEnds.toISOString(),
           is_beta: false,
         });
@@ -62,10 +70,8 @@ export function useSubscription(user) {
     ? Math.max(0, Math.ceil((trialEndsAt - new Date()) / (1000 * 60 * 60 * 24)))
     : 0;
 
-  // Effective access: active paid plan OR active trial
   const hasAccess = (subscription?.status === "active" && !trialExpired);
   const plan = hasAccess ? subscription.plan : "free";
-  const spoolLimit = hasAccess ? (subscription.spool_limit ?? 999999) : 20;
 
-  return { plan, spoolLimit, status: subscription?.status || "free", isTrialActive, trialDaysLeft, isBeta, loading, refresh };
+  return { plan, status: subscription?.status || "free", isTrialActive, trialDaysLeft, isBeta, loading, refresh };
 }

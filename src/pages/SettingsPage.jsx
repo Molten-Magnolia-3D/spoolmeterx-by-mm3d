@@ -130,7 +130,7 @@ export default function SettingsPage() {
     }
   };
 
-  const { plan, spoolLimit, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
+  const { plan, isTrialActive, trialDaysLeft, isBeta } = useSubscription(currentUser);
 
   const handleImportCsv = async (e) => {
     const file = e.target.files?.[0];

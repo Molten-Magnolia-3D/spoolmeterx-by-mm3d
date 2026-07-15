@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import SubPageHeader from "@/components/SubPageHeader";
 import NativeSelect from "@/components/NativeSelect";
 
-const TABS = ["Promo Codes", "Subscriptions", "Filament Types", "Users", "Barcode Library", "All Spools", "Feedback", "Roadmap"];
+const TABS = ["Promo Codes", "Users", "Filament Types", "Barcode Library", "All Spools", "Feedback", "Roadmap"];
 
 export default function AdminPage() {
   const [tab, setTab] = useState("Promo Codes");
@@ -47,9 +47,8 @@ export default function AdminPage() {
 
       <div className="p-4">
         {tab === "Promo Codes" && <PromoCodesTab />}
-        {tab === "Subscriptions" && <SubscriptionsTab />}
-        {tab === "Filament Types" && <FilamentTypesTab />}
         {tab === "Users" && <UsersTab />}
+        {tab === "Filament Types" && <FilamentTypesTab />}
         {tab === "Barcode Library" && <BarcodeLibraryTab />}
         {tab === "All Spools" && <AllSpoolsTab />}
         {tab === "Feedback" && <FeedbackTab />}
@@ -65,7 +64,7 @@ function PromoCodesTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ code: "", plan: "pro", duration_days: 30, spool_limit: 999999, max_uses: 1, notes: "", is_active: true });
+  const [form, setForm] = useState({ code: "", plan: "pro", duration_days: 30, max_uses: 1, notes: "", is_active: true });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -85,7 +84,6 @@ function PromoCodesTab() {
       ...form,
       code: form.code.toUpperCase().trim(),
       duration_days: parseInt(form.duration_days) || 30,
-      spool_limit: parseInt(form.spool_limit) || 999999,
       max_uses: parseInt(form.max_uses) || 1,
     };
     if (editId) {
@@ -96,13 +94,13 @@ function PromoCodesTab() {
     setSaving(false);
     setShowForm(false);
     setEditId(null);
-    setForm({ code: "", plan: "pro", duration_days: 30, spool_limit: 999999, max_uses: 1, notes: "", is_active: true });
+    setForm({ code: "", plan: "pro", duration_days: 30, max_uses: 1, notes: "", is_active: true });
     load();
   };
 
   const handleEdit = (c) => {
     setEditId(c.id);
-    setForm({ code: c.code, plan: c.plan, duration_days: c.duration_days, spool_limit: c.spool_limit, max_uses: c.max_uses, notes: c.notes || "", is_active: c.is_active });
+    setForm({ code: c.code, plan: c.plan, duration_days: c.duration_days, max_uses: c.max_uses, notes: c.notes || "", is_active: c.is_active });
     setShowForm(true);
   };
 
@@ -121,7 +119,7 @@ function PromoCodesTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{codes.length} codes</p>
-        <Button size="sm" onClick={() => { setEditId(null); setForm({ code: "", plan: "pro", duration_days: 30, spool_limit: 999999, max_uses: 1, notes: "", is_active: true }); setShowForm(true); }} className="gap-1.5">
+        <Button size="sm" onClick={() => { setEditId(null);           setForm({ code: "", plan: "pro", duration_days: 30, max_uses: 1, notes: "", is_active: true }); setShowForm(true); }} className="gap-1.5">
           <Plus className="w-4 h-4" /> New Code
         </Button>
       </div>
@@ -136,15 +134,11 @@ function PromoCodesTab() {
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Plan granted</Label>
-              <NativeSelect value={form.plan} onChange={v => set("plan", v)} options={["trial","hobby","pro","lifetime"]} />
+              <NativeSelect value={form.plan} onChange={v => set("plan", v)} options={["trial","pro"]} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Duration (days)</Label>
               <Input type="number" min="1" value={form.duration_days} onChange={e => set("duration_days", e.target.value)} className="h-10 bg-muted border-border text-foreground" />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">Spool limit</Label>
-              <Input type="number" min="1" value={form.spool_limit} onChange={e => set("spool_limit", e.target.value)} className="h-10 bg-muted border-border text-foreground" />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Max uses</Label>
@@ -179,7 +173,7 @@ function PromoCodesTab() {
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary capitalize">{c.plan}</span>
                     {!c.is_active && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Disabled</span>}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{c.duration_days} days · {c.spool_limit >= 999999 ? "Unlimited" : c.spool_limit} spools · {c.uses || 0}/{c.max_uses} uses</p>
+                  <p className="text-xs text-muted-foreground mt-1">{c.duration_days} days · {c.uses || 0}/{c.max_uses} uses</p>
                   {c.notes && <p className="text-xs text-muted-foreground/70 mt-0.5 italic">{c.notes}</p>}
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0">
@@ -194,123 +188,6 @@ function PromoCodesTab() {
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── SUBSCRIPTIONS ──────────────────────────────────────────────────────────────
-function SubscriptionsTab() {
-  const [subs, setSubs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editId, setEditId] = useState(null);
-  const [editForm, setEditForm] = useState({});
-  const [saving, setSaving] = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    const data = await base44.entities.UserSubscription.list("-created_date", 200);
-    setSubs(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, []);
-
-  const startEdit = (s) => {
-    setEditId(s.id);
-    setEditForm({
-      plan: s.plan,
-      status: s.status,
-      spool_limit: s.spool_limit ?? 999999,
-      is_beta: s.is_beta ?? false,
-      trial_ends_at: s.trial_ends_at ? s.trial_ends_at.split("T")[0] : "",
-    });
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    const payload = {
-      plan: editForm.plan,
-      status: editForm.status,
-      spool_limit: parseInt(editForm.spool_limit) || 999999,
-      is_beta: editForm.is_beta,
-    };
-    if (editForm.trial_ends_at) payload.trial_ends_at = new Date(editForm.trial_ends_at).toISOString();
-    await base44.entities.UserSubscription.update(editId, payload);
-    setSaving(false);
-    setEditId(null);
-    load();
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{subs.length} users</p>
-        <button onClick={load} className="p-2 rounded-lg bg-muted active:opacity-70"><RefreshCw className="w-4 h-4 text-muted-foreground" /></button>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
-      ) : subs.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No subscriptions yet.</p>
-      ) : (
-        <div className="space-y-2">
-          {subs.map(s => (
-            <div key={s.id} className="bg-card border border-border rounded-xl p-4">
-              {editId === s.id ? (
-                <div className="space-y-3">
-                  <p className="text-xs font-mono text-muted-foreground truncate">{s.user_email}</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">Plan</Label>
-                      <NativeSelect value={editForm.plan} onChange={v => setEditForm(f => ({ ...f, plan: v }))} options={["free","trial","hobby","pro","lifetime"]} />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">Status</Label>
-                      <NativeSelect value={editForm.status} onChange={v => setEditForm(f => ({ ...f, status: v }))} options={["pending","active","canceled","ended"]} />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">Spool limit</Label>
-                      <Input type="number" value={editForm.spool_limit} onChange={e => setEditForm(f => ({ ...f, spool_limit: e.target.value }))} className="h-9 bg-muted border-border text-foreground" />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">Trial ends</Label>
-                      <Input type="date" value={editForm.trial_ends_at} onChange={e => setEditForm(f => ({ ...f, trial_ends_at: e.target.value }))} className="h-9 bg-muted border-border text-foreground" />
-                    </div>
-                    <div className="col-span-2 flex items-center gap-2">
-                      <button
-                        onClick={() => setEditForm(f => ({ ...f, is_beta: !f.is_beta }))}
-                        className={`w-10 h-5 rounded-full transition-colors relative ${editForm.is_beta ? "bg-primary" : "bg-muted"}`}
-                      >
-                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${editForm.is_beta ? "left-5" : "left-0.5"}`} />
-                      </button>
-                      <span className="text-sm text-foreground">Beta user (trial never expires)</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setEditId(null)} className="flex-1 border-border text-foreground">Cancel</Button>
-                    <Button size="sm" onClick={handleSave} disabled={saving} className="flex-1">{saving ? "Saving…" : "Save"}</Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{s.user_email}</p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary capitalize">{s.plan}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${s.status === "active" ? "bg-green-900/40 text-green-400" : "bg-muted text-muted-foreground"}`}>{s.status}</span>
-                      {s.is_beta && <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-400">Beta</span>}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{s.spool_limit >= 999999 ? "Unlimited" : s.spool_limit} spools</p>
-                  </div>
-                  <button onClick={() => startEdit(s)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center active:opacity-70 flex-shrink-0">
-                    <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -642,37 +519,116 @@ function FilamentTypesTab() {
   );
 }
 
-// ── USERS ─────────────────────────────────────────────────────────────────────
+// ── USERS (merged with subscriptions) ────────────────────────────────────────
 function UsersTab() {
   const [users, setUsers] = useState([]);
+  const [subs, setSubs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null);
+  const [editUserId, setEditUserId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [trialDays, setTrialDays] = useState(14);
+  const [savingTrialDays, setSavingTrialDays] = useState(false);
+  const [trialDaysSettingId, setTrialDaysSettingId] = useState(null);
 
   const load = async () => {
     setLoading(true);
-    const data = await base44.entities.User.list("-created_date", 200);
-    setUsers(data);
+    const [userData, subData, settingsData] = await Promise.all([
+      base44.entities.User.list("-created_date", 200),
+      base44.entities.UserSubscription.list("-created_date", 200),
+      base44.entities.AppSettings.filter({ key: "trial_days" }),
+    ]);
+    setUsers(userData);
+    // Deduplicate subs: keep only the most recent active one per email, else most recent
+    const byEmail = {};
+    subData.forEach(s => {
+      const existing = byEmail[s.user_email];
+      if (!existing) { byEmail[s.user_email] = s; return; }
+      // prefer active, then most recent
+      if (s.status === "active" && existing.status !== "active") { byEmail[s.user_email] = s; }
+      else if (s.status !== "active" && existing.status === "active") { return; }
+      else if (new Date(s.created_date) > new Date(existing.created_date)) { byEmail[s.user_email] = s; }
+    });
+    setSubs(byEmail);
+    if (settingsData.length > 0) {
+      setTrialDays(parseInt(settingsData[0].value) || 14);
+      setTrialDaysSettingId(settingsData[0].id);
+    }
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const handleDelete = async (user) => {
-    if (!window.confirm(`Remove account for ${user.email}? This will delete their subscription record but NOT their spools or data. This cannot be undone.`)) return;
-    setDeletingId(user.id);
-    try {
-      // Delete their subscription record
-      const subs = await base44.entities.UserSubscription.filter({ user_email: user.email });
-      await Promise.all(subs.map(s => base44.entities.UserSubscription.delete(s.id)));
-    } catch (e) {
-      console.error("Error removing subscription:", e);
+  const saveTrialDays = async () => {
+    setSavingTrialDays(true);
+    if (trialDaysSettingId) {
+      await base44.entities.AppSettings.update(trialDaysSettingId, { value: String(trialDays) });
+    } else {
+      const rec = await base44.entities.AppSettings.create({ key: "trial_days", value: String(trialDays), description: "Default trial duration in days for new signups" });
+      setTrialDaysSettingId(rec.id);
     }
-    setDeletingId(null);
+    setSavingTrialDays(false);
+  };
+
+  const startEdit = (u) => {
+    const sub = subs[u.email];
+    setEditUserId(u.id);
+    setEditForm({
+      plan: sub?.plan || "free",
+      status: sub?.status || "active",
+      is_beta: sub?.is_beta ?? false,
+      trial_ends_at: sub?.trial_ends_at ? sub.trial_ends_at.split("T")[0] : "",
+      subId: sub?.id || null,
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const user = users.find(u => u.id === editUserId);
+    const payload = {
+      plan: editForm.plan,
+      status: editForm.status,
+      is_beta: editForm.is_beta,
+    };
+    if (editForm.trial_ends_at) payload.trial_ends_at = new Date(editForm.trial_ends_at).toISOString();
+    if (editForm.subId) {
+      await base44.entities.UserSubscription.update(editForm.subId, payload);
+    } else {
+      await base44.entities.UserSubscription.create({ ...payload, user_email: user.email, user_id: user.id });
+    }
+    setSaving(false);
+    setEditUserId(null);
     load();
   };
 
+  const handleDeleteUser = async (u) => {
+    if (!window.confirm(`Remove subscription for ${u.email}? This does NOT delete their spools or account data.`)) return;
+    const sub = subs[u.email];
+    if (sub) await base44.entities.UserSubscription.delete(sub.id);
+    load();
+  };
+
+  const planColors = { free: "bg-muted text-muted-foreground", trial: "bg-blue-900/40 text-blue-400", pro: "bg-primary/20 text-primary", lifetime: "bg-yellow-900/40 text-yellow-400" };
+
   return (
     <div className="space-y-4">
+      {/* Trial duration setting */}
+      <div className="bg-card border border-border rounded-xl p-4">
+        <p className="text-sm font-semibold text-foreground mb-1">Default Trial Duration</p>
+        <p className="text-xs text-muted-foreground mb-3">Only affects new signups — existing trial end dates are never changed.</p>
+        <div className="flex items-center gap-3">
+          <Input
+            type="number" min="1" max="365" value={trialDays}
+            onChange={e => setTrialDays(parseInt(e.target.value) || 14)}
+            className="h-9 w-24 bg-muted border-border text-foreground"
+          />
+          <span className="text-sm text-muted-foreground">days</span>
+          <Button size="sm" onClick={saveTrialDays} disabled={savingTrialDays} className="ml-auto">
+            {savingTrialDays ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{users.length} users</p>
         <button onClick={load} className="p-2 rounded-lg bg-muted active:opacity-70"><RefreshCw className="w-4 h-4 text-muted-foreground" /></button>
@@ -684,23 +640,80 @@ function UsersTab() {
         <p className="text-center text-muted-foreground py-8">No users found.</p>
       ) : (
         <div className="space-y-2">
-          {users.map(u => (
-            <div key={u.id} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{u.email}</p>
-                <p className="text-xs text-muted-foreground">{u.full_name || "No name"} · <span className="capitalize">{u.role}</span></p>
-                <p className="text-xs text-muted-foreground/60">Joined {new Date(u.created_date).toLocaleDateString()}</p>
+          {users.map(u => {
+            const sub = subs[u.email];
+            const isEditing = editUserId === u.id;
+            return (
+              <div key={u.id} className="bg-card border border-border rounded-xl p-4">
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{u.email}</p>
+                      <p className="text-xs text-muted-foreground">{u.full_name || "No name"}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">Plan</Label>
+                        <NativeSelect value={editForm.plan} onChange={v => setEditForm(f => ({ ...f, plan: v }))} options={["free","trial","pro"]} />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">Status</Label>
+                        <NativeSelect value={editForm.status} onChange={v => setEditForm(f => ({ ...f, status: v }))} options={["pending","active","canceled","ended"]} />
+                      </div>
+                      {editForm.plan === "trial" && (
+                        <div className="col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">Trial ends</Label>
+                          <Input type="date" value={editForm.trial_ends_at} onChange={e => setEditForm(f => ({ ...f, trial_ends_at: e.target.value }))} className="h-9 bg-muted border-border text-foreground" />
+                        </div>
+                      )}
+                      <div className="col-span-2 flex items-center gap-2">
+                        <button
+                          onClick={() => setEditForm(f => ({ ...f, is_beta: !f.is_beta }))}
+                          className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${editForm.is_beta ? "bg-primary" : "bg-muted"}`}
+                        >
+                          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${editForm.is_beta ? "left-5" : "left-0.5"}`} />
+                        </button>
+                        <span className="text-sm text-foreground">Beta (trial never expires)</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setEditUserId(null)} className="flex-1 border-border text-foreground">Cancel</Button>
+                      <Button size="sm" onClick={handleSave} disabled={saving} className="flex-1">{saving ? "Saving…" : "Save"}</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{u.email}</p>
+                      <p className="text-xs text-muted-foreground">{u.full_name || "No name"} · <span className="capitalize">{u.role}</span> · Joined {new Date(u.created_date).toLocaleDateString()}</p>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        {sub ? (
+                          <>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${planColors[sub.plan] || "bg-muted text-muted-foreground"}`}>{sub.plan}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${sub.status === "active" ? "bg-green-900/40 text-green-400" : "bg-muted text-muted-foreground"}`}>{sub.status}</span>
+                            {sub.is_beta && <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-400">Beta</span>}
+                            {sub.trial_ends_at && sub.plan === "trial" && (
+                              <span className="text-xs text-muted-foreground">expires {new Date(sub.trial_ends_at).toLocaleDateString()}</span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">free</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button onClick={() => startEdit(u)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center active:opacity-70">
+                        <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                      <button onClick={() => handleDeleteUser(u)} className="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70">
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={() => handleDelete(u)}
-                disabled={deletingId === u.id}
-                className="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70 flex-shrink-0 disabled:opacity-40"
-                title="Remove account"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-destructive" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
