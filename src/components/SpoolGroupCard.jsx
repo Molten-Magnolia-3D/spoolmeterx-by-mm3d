@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { CheckSquare, Square } from "lucide-react";
-import { swatchStyle } from "@/components/SpoolSwatch";
+import { CheckSquare, Square, Settings } from "lucide-react";
+import { swatchStyle, swatchBorderStyle } from "@/components/SpoolSwatch";
 
 function getStatus(current, starting) {
   if (!current || current <= 0) return { label: "Empty", color: "text-gray-400" };
@@ -10,7 +10,7 @@ function getStatus(current, starting) {
   return { label: "Full", color: "text-green-400" };
 }
 
-export default function SpoolGroupCard({ spools, selectMode, selectedIds, onToggleSelect, onLongPress }) {
+export default function SpoolGroupCard({ spools, selectMode, selectedIds, onToggleSelect, onLongPress, onGroupSettings }) {
   const sample = spools[0];
   const totalGrams = spools.reduce((s, sp) => s + (sp.current_weight_grams || 0), 0);
   const totalStarting = spools.reduce((s, sp) => s + (sp.starting_weight_grams || 1000), 0);
@@ -42,7 +42,8 @@ export default function SpoolGroupCard({ spools, selectMode, selectedIds, onTogg
         )}
 
         {/* Color swatch */}
-        <div className="w-10 h-10 rounded-lg border border-white/10 flex-shrink-0" style={swatchStyle(sample)} />
+        <div className="w-10 h-10 rounded-lg flex-shrink-0" style={{ ...swatchStyle(sample), ...swatchBorderStyle }} />
+
 
         {/* Info */}
         <div className="flex-1 min-w-0">
@@ -63,10 +64,19 @@ export default function SpoolGroupCard({ spools, selectMode, selectedIds, onTogg
           </div>
         </div>
 
-        {/* Weight */}
-        <div className="text-right flex-shrink-0">
+        {/* Weight + group settings */}
+        <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
           <p className="text-sm font-bold text-foreground">{Math.round(totalGrams)}g</p>
           <p className="text-xs text-muted-foreground">{Math.round(pct)}%</p>
+          {!selectMode && onGroupSettings && spools.length > 1 && (
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); onGroupSettings(spools); }}
+              className="mt-1 w-6 h-6 rounded-md bg-muted flex items-center justify-center active:opacity-70"
+              title="Group settings"
+            >
+              <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          )}
         </div>
       </div>
 

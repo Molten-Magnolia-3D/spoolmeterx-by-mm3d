@@ -349,8 +349,8 @@ export default function SettingsPage() {
         <Button
           variant="outline" size="sm"
           onClick={() => {
-            const header = "brand,material,color_name,color_hex,starting_weight_grams,current_weight_grams,purchase_price_per_kg,printer_slot,notes,date_opened,barcode";
-            const example = "Bambu Lab,PLA,Matte Black,#222222,1000,950,19.99,Slot 1,Example spool,2026-01-01,1234567890123";
+            const header = "brand,material,color_name,color_hex,starting_weight_grams,current_weight_grams,purchase_price_per_kg,notes,date_opened,barcode";
+            const example = "Bambu Lab,PLA,Matte Black,#222222,1000,950,19.99,Example spool,2026-01-01,1234567890123";
             const blob = new Blob([header + "\n" + example], { type: "text/csv" });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);

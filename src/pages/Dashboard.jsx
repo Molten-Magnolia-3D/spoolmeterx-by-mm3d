@@ -9,6 +9,7 @@ import {
   CheckSquare, Square, Copy, Trash2, Search, Layers, List
 } from "lucide-react";
 import SpoolGroupCard from "@/components/SpoolGroupCard";
+import GroupSettingsSheet from "@/components/GroupSettingsSheet";
 import SpoolCard from "@/components/SpoolCard";
 import LowStockWidget from "@/components/LowStockWidget";
 import QuickWeightSheet from "@/components/QuickWeightSheet";
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [quickLogSpool, setQuickLogSpool] = useState(null);
+  const [groupSettingsSpools, setGroupSettingsSpools] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const criticalThreshold = parseInt(localStorage.getItem("ff_critical") || "100");
   const lowThreshold = parseInt(localStorage.getItem("ff_low") || "300");
@@ -303,12 +305,13 @@ export default function Dashboard() {
             {groups.map((group, i) =>
               groupByColor ? (
                 <SpoolGroupCard
-                  key={i}
-                  spools={group}
-                  selectMode={selectMode}
-                  selectedIds={selectedIds}
-                  onToggleSelect={handleToggleSelect}
-                  onLongPress={!selectMode ? (spool) => setQuickLogSpool(spool) : undefined}
+                key={i}
+                spools={group}
+                selectMode={selectMode}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
+                onLongPress={!selectMode ? (spool) => setQuickLogSpool(spool) : undefined}
+                onGroupSettings={!selectMode ? (grp) => setGroupSettingsSpools(grp) : undefined}
                 />
               ) : (
                 <SpoolCard
@@ -330,6 +333,15 @@ export default function Dashboard() {
         <QuickWeightSheet
           spool={quickLogSpool}
           onClose={() => setQuickLogSpool(null)}
+          onSaved={load}
+        />
+      )}
+
+      {/* Group settings sheet */}
+      {groupSettingsSpools && (
+        <GroupSettingsSheet
+          spools={groupSettingsSpools}
+          onClose={() => setGroupSettingsSpools(null)}
           onSaved={load}
         />
       )}

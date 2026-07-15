@@ -15,11 +15,18 @@ export function swatchStyle(spool) {
   return { backgroundColor: spool.color_hex || "#888" };
 }
 
+/**
+ * Returns a border style that contrasts against both light and dark themes.
+ * Uses a semi-transparent dark border that shows on light colors in light mode,
+ * and a semi-transparent light border on dark colors in dark mode.
+ */
+export const swatchBorderStyle = { boxShadow: "inset 0 0 0 1.5px rgba(0,0,0,0.18), inset 0 0 0 1.5px rgba(255,255,255,0.12)" };
+
 export function SpoolSwatch({ spool, className = "" }) {
   return (
     <div
       className={className}
-      style={swatchStyle(spool)}
+      style={{ ...swatchStyle(spool), ...swatchBorderStyle }}
     />
   );
 }

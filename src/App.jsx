@@ -77,6 +77,7 @@ const AuthenticatedApp = () => {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/delete-account" element={<DeleteAccountPage />} />
+        <Route path="/roadmap" element={<RoadmapPage />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<LandingPage />} />}>
           {/* Tab routes render nothing here — TabLayout is rendered persistently below */}
           <Route path="/my-barcodes" element={null} />
@@ -101,9 +102,7 @@ const AuthenticatedApp = () => {
           <Route path="/redeem" element={
             <PageTransition><RedeemCodePage /></PageTransition>
           } />
-          <Route path="/roadmap" element={
-            <PageTransition><RoadmapPage /></PageTransition>
-          } />
+
           <Route path="/account" element={
             <PageTransition><AccountSettingsPage /></PageTransition>
           } />

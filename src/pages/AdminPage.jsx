@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { Plus, Trash2, Edit2, Check, X, RefreshCw, Star } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, RefreshCw, Star, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SubPageHeader from "@/components/SubPageHeader";
 import NativeSelect from "@/components/NativeSelect";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const TABS = ["Promo Codes", "Users", "Filament Types", "Barcode Library", "All Spools", "Feedback", "Roadmap"];
 
@@ -294,7 +295,7 @@ function BarcodeLibraryTab() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg border border-white/10 flex-shrink-0" style={{ backgroundColor: m.color_hex || "#888" }} />
+                  <div className="w-10 h-10 rounded-lg flex-shrink-0" style={{ backgroundColor: m.color_hex || "#888", boxShadow: "inset 0 0 0 1.5px rgba(0,0,0,0.18), inset 0 0 0 1.5px rgba(255,255,255,0.12)" }} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-foreground truncate">{m.brand} — {m.color_name}</p>
                     <p className="text-xs text-muted-foreground">{m.material} · {m.weight_grams ? `${m.weight_grams}g` : "weight not set"}</p>
@@ -738,8 +739,11 @@ function RoadmapTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ title: "", description: "", status: "planned", category: "", sort_order: 0 });
+  const [form, setForm] = useState({ title: "", description: "", status: "planned", category: "" });
   const [saving, setSaving] = useState(false);
+  const [reordering, setReordering] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
 
   const load = async () => {
     setLoading(true);
@@ -750,22 +754,32 @@ function RoadmapTab() {
 
   useEffect(() => { load(); }, []);
 
+  const categories = ["all", ...Array.from(new Set(items.map(i => i.category).filter(Boolean)))];
+
+  const displayed = items.filter(i => {
+    if (filterStatus !== "all" && i.status !== filterStatus) return false;
+    if (filterCategory !== "all" && i.category !== filterCategory) return false;
+    return true;
+  });
+
   const openNew = () => {
     setEditId(null);
-    setForm({ title: "", description: "", status: "planned", category: "", sort_order: items.length });
+    // New item gets sort_order = highest existing + 1 (1-based)
+    const maxOrder = items.reduce((m, i) => Math.max(m, i.sort_order ?? 0), 0);
+    setForm({ title: "", description: "", status: "planned", category: "", sort_order: maxOrder + 1 });
     setShowForm(true);
   };
 
   const openEdit = (item) => {
     setEditId(item.id);
-    setForm({ title: item.title, description: item.description || "", status: item.status, category: item.category || "", sort_order: item.sort_order ?? 0 });
+    setForm({ title: item.title, description: item.description || "", status: item.status, category: item.category || "", sort_order: item.sort_order ?? 1 });
     setShowForm(true);
   };
 
   const handleSave = async () => {
     if (!form.title.trim()) return;
     setSaving(true);
-    const payload = { ...form, sort_order: parseInt(form.sort_order) || 0 };
+    const payload = { ...form, sort_order: parseInt(form.sort_order) || 1 };
     if (editId) {
       await base44.entities.Roadmap.update(editId, payload);
     } else {
@@ -783,14 +797,55 @@ function RoadmapTab() {
     load();
   };
 
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const src = result.source.index;
+    const dst = result.destination.index;
+    if (src === dst) return;
+
+    // Reorder the displayed list
+    const reordered = [...displayed];
+    const [moved] = reordered.splice(src, 1);
+    reordered.splice(dst, 0, moved);
+
+    // Assign new sort_order values starting at 1
+    const updated = reordered.map((item, idx) => ({ ...item, sort_order: idx + 1 }));
+
+    // Optimistic update: merge back into full items list
+    const updatedMap = Object.fromEntries(updated.map(i => [i.id, i]));
+    setItems(prev => prev.map(i => updatedMap[i.id] || i));
+
+    // Persist
+    setReordering(true);
+    await base44.entities.Roadmap.bulkUpdate(updated.map(i => ({ id: i.id, sort_order: i.sort_order })));
+    setReordering(false);
+  };
+
   const statusColors = { planned: "bg-muted text-muted-foreground", in_progress: "bg-blue-900/40 text-blue-400", done: "bg-green-900/40 text-green-400" };
   const statusLabels = { planned: "Planned", in_progress: "In Progress", done: "Shipped" };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{items.length} items</p>
+        <p className="text-sm text-muted-foreground">{items.length} items {reordering && <span className="text-xs text-primary">Saving order…</span>}</p>
         <Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="w-4 h-4" /> Add Item</Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2">
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+          className="flex-1 h-9 bg-muted border border-border text-foreground text-xs rounded-lg px-2 focus:outline-none">
+          <option value="all">All Statuses</option>
+          <option value="planned">Planned</option>
+          <option value="in_progress">In Progress</option>
+          <option value="done">Shipped</option>
+        </select>
+        {categories.length > 1 && (
+          <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
+            className="flex-1 h-9 bg-muted border border-border text-foreground text-xs rounded-lg px-2 focus:outline-none">
+            {categories.map(c => <option key={c} value={c}>{c === "all" ? "All Categories" : c}</option>)}
+          </select>
+        )}
       </div>
 
       {showForm && (
@@ -822,7 +877,7 @@ function RoadmapTab() {
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block">Sort order</Label>
-                <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} className="h-10 bg-muted border-border text-foreground" />
+                <Input type="number" min="1" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: e.target.value }))} className="h-10 bg-muted border-border text-foreground" />
               </div>
             </div>
           </div>
@@ -835,33 +890,52 @@ function RoadmapTab() {
 
       {loading ? (
         <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
-      ) : items.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No roadmap items yet.</p>
+      ) : displayed.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No roadmap items match your filters.</p>
       ) : (
-        <div className="space-y-2">
-          {items.map(item => (
-            <div key={item.id} className="bg-card border border-border rounded-xl p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <p className="font-semibold text-foreground text-sm">{item.title}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status]}`}>{statusLabels[item.status]}</span>
-                  </div>
-                  {item.description && <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>}
-                  {item.category && <p className="text-xs text-primary/70 mt-1">{item.category} · order {item.sort_order}</p>}
-                </div>
-                <div className="flex gap-1.5 flex-shrink-0">
-                  <button onClick={() => openEdit(item)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center active:opacity-70">
-                    <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70">
-                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                  </button>
-                </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="roadmap">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2">
+                {displayed.map((item, index) => (
+                  <Draggable key={item.id} draggableId={item.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`bg-card border border-border rounded-xl p-4 transition-shadow ${snapshot.isDragging ? "shadow-lg border-primary/50" : ""}`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div {...provided.dragHandleProps} className="mt-1 p-1 rounded cursor-grab active:cursor-grabbing flex-shrink-0">
+                            <GripVertical className="w-4 h-4 text-muted-foreground/50" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className="text-xs font-mono text-muted-foreground">#{item.sort_order}</span>
+                              <p className="font-semibold text-foreground text-sm">{item.title}</p>
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[item.status]}`}>{statusLabels[item.status]}</span>
+                            </div>
+                            {item.description && <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>}
+                            {item.category && <p className="text-xs text-primary/70 mt-1">{item.category}</p>}
+                          </div>
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            <button onClick={() => openEdit(item)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center active:opacity-70">
+                              <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                            </button>
+                            <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center active:opacity-70">
+                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       )}
     </div>
   );
@@ -911,7 +985,7 @@ function AllSpoolsTab() {
         <div className="space-y-2">
           {filtered.map(s => (
             <div key={s.id} className={`bg-card border border-border rounded-xl p-4 flex items-center gap-3 ${s.is_empty ? "opacity-50" : ""}`}>
-              <div className="w-10 h-10 rounded-lg border border-white/10 flex-shrink-0" style={{ backgroundColor: s.color_hex || "#888" }} />
+              <div className="w-10 h-10 rounded-lg flex-shrink-0" style={{ backgroundColor: s.color_hex || "#888", boxShadow: "inset 0 0 0 1.5px rgba(0,0,0,0.18), inset 0 0 0 1.5px rgba(255,255,255,0.12)" }} />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground truncate">{s.brand} — {s.color_name}</p>
                 <p className="text-xs text-muted-foreground">{s.material} · {s.current_weight_grams}g remaining {s.is_empty ? "· Empty" : ""}</p>

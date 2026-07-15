@@ -10,7 +10,7 @@ export default function LandingPage() {
           <span className="text-xs text-muted-foreground">by MM3D</span>
         </div>
         <div className="flex items-center gap-3">
-          <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2">Privacy Policy</Link>
+          <Link to="/roadmap" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2">Roadmap</Link>
           <Link to="/login" className="text-sm bg-primary text-primary-foreground px-4 py-1.5 rounded-lg font-medium">Sign In</Link>
         </div>
       </header>
@@ -67,6 +67,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-border px-6 py-6 text-center text-xs text-muted-foreground">
         <div className="flex items-center justify-center gap-4 mb-2">
+          <Link to="/roadmap" className="underline underline-offset-2 hover:text-foreground">Roadmap</Link>
           <Link to="/privacy" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</Link>
           <Link to="/terms" className="underline underline-offset-2 hover:text-foreground">Terms of Service</Link>
         </div>

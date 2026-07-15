@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, X } from "lucide-react";
-import { swatchStyle } from "@/components/SpoolSwatch";
+import { swatchStyle, swatchBorderStyle } from "@/components/SpoolSwatch";
 import ColorHistoryBar from "@/components/ColorHistoryBar";
 // Select removed — material uses pill buttons now
 
@@ -174,7 +174,7 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
       </div>
 
       {/* Preview */}
-      <div className="w-full h-8 rounded-lg border border-border" style={swatchStyle(form)} />
+      <div className="w-full h-8 rounded-lg" style={{ ...swatchStyle(form), ...swatchBorderStyle }} />
 
       {/* Single color picker */}
       {form.color_type === "single" && (
@@ -187,8 +187,13 @@ export default function SpoolForm({ initialData = {}, onSubmit, onCancel, loadin
                   key={c.hex}
                   type="button"
                   onClick={() => { set("color_hex", c.hex); set("color_name", form.color_name || c.name); }}
-                  className="w-8 h-8 rounded-full border-2 transition-all"
-                  style={{ backgroundColor: c.hex, borderColor: form.color_hex === c.hex ? "white" : "transparent" }}
+                  className="w-8 h-8 rounded-full transition-all"
+                  style={{
+                    backgroundColor: c.hex,
+                    boxShadow: form.color_hex === c.hex
+                      ? "0 0 0 2px hsl(var(--primary)), inset 0 0 0 1.5px rgba(0,0,0,0.18), inset 0 0 0 1.5px rgba(255,255,255,0.12)"
+                      : "inset 0 0 0 1.5px rgba(0,0,0,0.18), inset 0 0 0 1.5px rgba(255,255,255,0.12)"
+                  }}
                   title={c.name}
                 />
               ))}
