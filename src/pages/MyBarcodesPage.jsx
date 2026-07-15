@@ -101,7 +101,7 @@ export default function MyBarcodesPage() {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
-    <div className="min-h-screen bg-background" {...containerProps}>
+    <div className="min-h-screen bg-background max-w-2xl mx-auto" {...containerProps}>
       {PullIndicator}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <h1 className="text-2xl font-bold text-foreground font-heading">My Barcodes</h1>
