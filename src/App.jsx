@@ -26,10 +26,14 @@ import DeleteAccountPage from '@/pages/DeleteAccountPage';
 import SettingsPage from '@/pages/SettingsPage';
 import AccountSettingsPage from '@/pages/AccountSettingsPage';
 import TabLayout from '@/components/TabLayout';
+import BottomTabBar from '@/components/BottomTabBar';
 import PageTransition from '@/components/PageTransition';
 import { Navigate, useLocation } from 'react-router-dom';
 
 const TAB_ROUTES = ["/", "/my-barcodes", "/quick-jobs", "/settings"];
+
+// Routes where the persistent tab bar should be visible (tab roots + sub-pages)
+const TAB_BAR_PREFIXES = ["/", "/my-barcodes", "/quick-jobs", "/settings", "/spool/", "/add", "/pricing", "/scan", "/redeem", "/roadmap", "/account", "/admin", "/upgrade-success"];
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated } = useAuth();
@@ -51,6 +55,11 @@ const AuthenticatedApp = () => {
   }
 
   const isTabRoute = TAB_ROUTES.includes(location.pathname);
+  const showTabBar = isAuthenticated && TAB_BAR_PREFIXES.some(prefix =>
+    prefix.endsWith("/") && prefix !== "/"
+      ? location.pathname.startsWith(prefix)
+      : location.pathname === prefix
+  );
 
   return (
     <>
@@ -107,6 +116,11 @@ const AuthenticatedApp = () => {
       <div style={{ display: isTabRoute && isAuthenticated ? "block" : "none" }}>
         <TabLayout />
       </div>
+
+      {/* Show the BottomTabBar on sub-routes (spool detail, add, pricing, etc.) without mounting full TabLayout */}
+      {showTabBar && !isTabRoute && (
+        <BottomTabBar />
+      )}
     </>
   );
 };

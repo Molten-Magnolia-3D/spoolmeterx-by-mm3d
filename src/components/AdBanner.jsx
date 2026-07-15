@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { isNativeWebView } from "@/lib/isNativeWebView";
 
 // Replace these with your real values after Google AdSense approves your account:
 // 1. Set ADSENSE_CLIENT to your Publisher ID (e.g. "ca-pub-1234567890123456")
@@ -10,9 +11,10 @@ const IS_CONFIGURED = !ADSENSE_CLIENT.includes("XXXXXXXXX");
 export default function AdBanner({ className = "" }) {
   const adRef = useRef(null);
   const pushed = useRef(false);
+  const inWebView = isNativeWebView();
 
   useEffect(() => {
-    if (!IS_CONFIGURED || pushed.current) return;
+    if (!IS_CONFIGURED || pushed.current || inWebView) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
@@ -20,6 +22,9 @@ export default function AdBanner({ className = "" }) {
       // silently ignore
     }
   }, []);
+
+  // Never render ads or placeholders inside a native WebView
+  if (inWebView) return null;
 
   if (!IS_CONFIGURED) {
     // Placeholder shown until AdSense is configured

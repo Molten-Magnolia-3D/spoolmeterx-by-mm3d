@@ -5,7 +5,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import FeedbackForm from "@/components/FeedbackForm";
-import { exportSpoolsCsv } from "@/lib/exportCsv";
+import { exportSpoolsCsv, buildSpoolsCsv } from "@/lib/exportCsv";
+import CsvExportModal from "@/components/CsvExportModal";
 import { parseCsv } from "@/lib/importCsv";
 import {
   Bell, Download, Type, Sun, Moon, ChevronRight, User
@@ -61,6 +62,7 @@ export default function SettingsPage() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [importStatus, setImportStatus] = useState(null);
   const [importMessage, setImportMessage] = useState("");
+  const [csvModal, setCsvModal] = useState(null); // { csv, filename } | null
 
   // Threshold settings
   const [criticalThreshold, setCriticalThreshold] = useState(() => parseInt(localStorage.getItem("ff_critical") || "100"));
@@ -326,7 +328,13 @@ export default function SettingsPage() {
       {/* Data */}
       <SectionHeader>Data</SectionHeader>
       <div className="bg-card border-b border-border/50 px-4 py-4 space-y-3">
-        <Button variant="outline" size="sm" onClick={() => exportSpoolsCsv(spools)} className="w-full h-11 gap-2 border-border text-foreground">
+        <Button variant="outline" size="sm" onClick={() => {
+          const filename = `filament-inventory-${new Date().toISOString().split("T")[0]}.csv`;
+          const downloaded = exportSpoolsCsv(spools);
+          if (!downloaded) {
+            setCsvModal({ csv: buildSpoolsCsv(spools), filename });
+          }
+        }} className="w-full h-11 gap-2 border-border text-foreground">
           <Download className="w-4 h-4" /> Export Inventory as CSV
         </Button>
         <label className="w-full block">
@@ -381,6 +389,14 @@ export default function SettingsPage() {
         )}
       </div>
 
+      {/* CSV Export Modal (shown when browser download is blocked) */}
+      {csvModal && (
+        <CsvExportModal
+          csvText={csvModal.csv}
+          filename={csvModal.filename}
+          onClose={() => setCsvModal(null)}
+        />
+      )}
     </div>
   );
 }
