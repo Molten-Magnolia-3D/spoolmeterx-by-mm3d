@@ -1,5 +1,11 @@
 import { useEffect } from "react";
 
+// Module-level flag: when a hook's cleanup pops its own sentinel history
+// entry, it marks this so that whichever popstate listener is currently
+// attached (possibly a *different* modal step's handler) knows to ignore
+// that one event instead of treating it as a real back-button press.
+let suppressNextPopstate = false;
+
 /**
  * Pushes a sentinel history entry when `isOpen` becomes true,
  * then intercepts the Android hardware back button (popstate) to call
@@ -15,8 +21,11 @@ export default function useModalBackHandler(isOpen, onClose) {
     // Push a dummy state so the back button has something to pop
     window.history.pushState({ modal: true }, "");
 
-    const handler = (e) => {
-      // If this popstate was triggered while our modal is open, intercept it
+    const handler = () => {
+      if (suppressNextPopstate) {
+        suppressNextPopstate = false;
+        return;
+      }
       onClose();
     };
 
@@ -26,6 +35,7 @@ export default function useModalBackHandler(isOpen, onClose) {
       // If the modal is closed programmatically (not via back), remove the
       // sentinel entry so the stack stays clean.
       if (window.history.state?.modal) {
+        suppressNextPopstate = true;
         window.history.back();
       }
     };
