@@ -168,8 +168,8 @@ export default function Dashboard() {
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pb-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
         <div className="flex items-center justify-between gap-2 min-w-0">
           <h1 className="text-base font-bold text-foreground font-heading truncate min-w-0">
-            SpoolmeterX <span className="text-muted-foreground font-normal text-xs">by MM3D</span>
-          </h1>
+  SpoolmeterX <span className="text-muted-foreground font-normal text-xs">by MM3D</span>
+</h1>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               onClick={toggleSelectMode}
