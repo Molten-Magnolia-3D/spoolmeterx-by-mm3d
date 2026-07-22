@@ -189,8 +189,8 @@ export default function ScanPage() {
     return (
       <div className="min-h-screen bg-background">
         <BarcodeScanner onScan={handleScan} onClose={() => navigate("/")} />
-        {!loading && (
-          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4 space-y-3">
+          {!loading && (
+        <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background/95 backdrop-blur border-t border-border p-4 space-y-3">
             <div className="max-w-2xl mx-auto space-y-3">
               <div className="flex gap-2">
                 <Input
