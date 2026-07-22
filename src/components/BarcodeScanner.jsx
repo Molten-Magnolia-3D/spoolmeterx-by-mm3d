@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { X } from "lucide-react";
 
+
 export default function BarcodeScanner({ onScan, onClose }) {
   const [error, setError] = useState(null);
   const scannerRef = useRef(null);
+  const lastScanRef = useRef({ code: null, time: 0 });
   const containerId = "barcode-scanner-container";
 
   useEffect(() => {
@@ -17,10 +19,18 @@ export default function BarcodeScanner({ onScan, onClose }) {
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 150 } },
           (decodedText) => {
+            const now = Date.now();
+            const last = lastScanRef.current;
+            // Ignore repeat reads of the same code within 2 seconds
+            if (last.code === decodedText && now - last.time < 2000) {
+              return;
+            }
+            lastScanRef.current = { code: decodedText, time: now };
             onScan(decodedText);
           },
           () => {}
         );
+  
       } catch (err) {
         scannerRef.current = null;
         setError("Camera access denied or unavailable. Please allow camera access and try again.");
