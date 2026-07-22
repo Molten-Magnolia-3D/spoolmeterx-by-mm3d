@@ -13,7 +13,7 @@ import GroupSettingsSheet from "@/components/GroupSettingsSheet";
 import SpoolCard from "@/components/SpoolCard";
 import LowStockWidget from "@/components/LowStockWidget";
 import QuickWeightSheet from "@/components/QuickWeightSheet";
-import AdBanner from "@/components/AdBanner";
+import UpgradeBanner from "@/components/UpgradeBanner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -201,12 +201,12 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Ad banner for free users */}
-      {plan === "free" && !isTrialActive && (
-        <div className="px-4 pt-2">
-          <AdBanner />
-        </div>
-      )}
+      {/* Upgrade banner for free users */}
+{plan === "free" && !isTrialActive && (
+  <div className="px-4 pt-2">
+    <UpgradeBanner />
+  </div>
+)}
 
       {/* Bulk Action Bar */}
       {selectMode && (
