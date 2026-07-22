@@ -1,9 +1,16 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <Link to="/" aria-label="Back to home" className="flex items-center gap-2 active:opacity-70">
+            <span className="text-lg font-bold font-heading text-foreground">SpoolmeterX</span>
+            <span className="text-xs text-muted-foreground">by MM3D</span>
+          </Link>
+        </div>
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
             <Icon className="w-7 h-7 text-primary-foreground" aria-hidden="true" />
